@@ -1,12 +1,13 @@
+// page.js
 "use client";
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import UserDataInput from '@/components/UserDataInput';
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/Select';
-import HealthSummary from '@/components/HealthSummary';
+import UserDataInput from '@/components/UserDataInput'; // Import the UserDataInput component
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/Select'; // Import the Select components
+import HealthSummary from '@/components/HealthSummary'; // Import the HealthSummary component
 
 const activityLevelMultiplier = {
   sedentary: 1.2,
@@ -36,18 +37,109 @@ const HealthDashboardChatbot = () => {
   const [showSummary, setShowSummary] = useState(false);
   const [progress, setProgress] = useState(0);
 
-  // Update progress based on the current step
   useEffect(() => {
     setProgress((currentStep / (steps.length - 1)) * 100);
-  }, [currentStep, steps]);
-  // Placeholder for steps array
-  const steps = ['Step 1', 'Step 2', 'Step 3'];},
+  }, [currentStep]);
+
+  const steps = [
+    {
+      title: 'Your Name',
+      component: (
+        <UserDataInput
+          field="name"
+          label="What is your name?"
+          value={userData.name}
+          onChange={(value) => handleUserDataChange('name', value)}
+        />
+      ),
+    },
+    {
+      title: 'Weight and Height',
+      component: (
+        <>
+          <UserDataInput
+            field="weight"
+            label="Weight (kg)"
+            value={userData.weight}
+            onChange={(value) => handleUserDataChange('weight', value)}
+          />
+          <UserDataInput
+            field="height"
+            label="Height (cm)"
+            value={userData.height}
+            onChange={(value) => handleUserDataChange('height', value)}
+          />
+        </>
+      ),
+    },
+    {
+      title: 'Age and Gender',
+      component: (
+        <>
+          <UserDataInput
+            field="age"
+            label="Age"
+            value={userData.age}
+            onChange={(value) => handleUserDataChange('age', value)}
+          />
+          <Select onValueChange={(value) => handleUserDataChange('gender', value)}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Select gender" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="male">Male</SelectItem>
+              <SelectItem value="female">Female</SelectItem>
+            </SelectContent>
+          </Select>
+        </>
+      ),
+    },
+    {
+      title: 'Activity Level',
+      component: (
+        <Select onValueChange={(value) => handleUserDataChange('activityLevel', value)}>
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Select activity level" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="sedentary">Sedentary</SelectItem>
+            <SelectItem value="light">Light Exercise</SelectItem>
+            <SelectItem value="moderate">Moderate Exercise</SelectItem>
+            <SelectItem value="active">Active</SelectItem>
+            <SelectItem value="veryActive">Very Active</SelectItem>
+          </SelectContent>
+        </Select>
+      ),
+    },
+    {
+      title: 'Health Summary',
+      component: (
+        <HealthSummary
+          bmi={bmi}
+          bmr={bmr}
+          macros={macros}
+          userData={userData}
+        />
+      ),
+    },
+    {
+      title: 'Personalized Fun Summary',
+      component: (
+        <PersonalizedSummary
+          bmi={bmi}
+          bmr={bmr}
+          macros={macros}
+          userData={userData}
+          handleShare={handleShare}
+        />
+      ),
+    },
   ];
 
   const calculateBmi = () => {
     const { weight, height } = userData;
     const heightInMeters = height / 100;
-    const bmi = userData.weight && userData.height ? calculateBmi() : null;
+    const bmi = weight / (heightInMeters * heightInMeters);
     setBmi(bmi.toFixed(1));
   };
 
