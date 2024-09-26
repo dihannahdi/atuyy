@@ -154,33 +154,43 @@ const ChatbotStep = ({ step, userData, onDataChange, onNext }) => {
       <CardContent>
         {step.fields ? (
           step.fields.map((field, index) => (
-            <UserDataInput
-              key={field}
-              field={field}
-              label={step.labels[index]}
-              value={userData[field]}
-              onChange={(value) => onDataChange(field, value)}
-            />
+            field === 'gender' ? (
+              <Select 
+                key={field}
+                onValueChange={(value) => onDataChange(field, value)}
+              >
+                <SelectTrigger className="w-full mb-4">
+                  <SelectValue placeholder="Select gender" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="male">Male</SelectItem>
+                  <SelectItem value="female">Female</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
+                  <SelectItem value="prefer-not-to-say">Prefer not to say</SelectItem>
+                </SelectContent>
+              </Select>
+            ) : (
+              <UserDataInput
+                key={field}
+                field={field}
+                label={step.labels[index]}
+                value={userData[field]}
+                onChange={(value) => onDataChange(field, value)}
+              />
+            )
           ))
         ) : (
-          step.field === 'gender' || step.field === 'activityLevel' ? (
+          step.field === 'activityLevel' ? (
             <Select onValueChange={(value) => onDataChange(step.field, value)}>
               <SelectTrigger className="w-full">
                 <SelectValue placeholder={step.label} />
               </SelectTrigger>
               <SelectContent>
-                {step.field === 'gender' ? (
-                  <>
-                    <SelectItem value="male">Male</SelectItem>
-                    <SelectItem value="female">Female</SelectItem>
-                  </>
-                ) : (
-                  Object.keys(activityLevelMultiplier).map((level) => (
-                    <SelectItem key={level} value={level}>
-                      {level.charAt(0).toUpperCase() + level.slice(1)}
-                    </SelectItem>
-                  ))
-                )}
+                {Object.keys(activityLevelMultiplier).map((level) => (
+                  <SelectItem key={level} value={level}>
+                    {level.charAt(0).toUpperCase() + level.slice(1)}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           ) : (
