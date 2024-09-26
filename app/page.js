@@ -1,11 +1,10 @@
-// page.js
 "use client";
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import UserDataInput from '@/components/UserDataInput';
+import { Input } from '@/components/ui/input'; // Import the Input component
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import HealthSummary from '@/components/HealthSummary';
 
@@ -131,6 +130,31 @@ const HealthDashboardChatbot = () => {
       <footer className="bg-gray-900 text-white py-4 text-center">
         <p>&copy; {new Date().getFullYear()} Health Dashboard</p>
       </footer>
+    </div>
+  );
+};
+
+const UserDataInput = ({ field, label, value, onChange }) => {
+  const handleChange = (e) => {
+    const newValue = e.target.type === 'number' ? parseFloat(e.target.value) : e.target.value;
+    onChange(newValue);
+  };
+
+  return (
+    <div className="mb-4">
+      <label htmlFor={field} className="block text-sm font-medium text-gray-700 mb-1">
+        {label}
+      </label>
+      <Input
+        type={field === 'age' || field === 'weight' || field === 'height' ? 'number' : 'text'}
+        id={field}
+        name={field}
+        value={value}
+        onChange={handleChange}
+        className="w-full"
+        min={field === 'age' || field === 'weight' || field === 'height' ? 0 : undefined}
+        step={field === 'height' ? 0.1 : 1}
+      />
     </div>
   );
 };
@@ -271,5 +295,6 @@ const PersonalizedSummary = ({ healthMetrics, userData, handleShare }) => {
     </motion.div>
   );
 };
+
 
 export default HealthDashboardChatbot;
