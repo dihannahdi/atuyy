@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Card, CardHeader, CardContent } from '@shadcn/ui/card';
@@ -255,7 +257,7 @@ const getBmiDescription = (bmi) => {
   } else if (bmi >= 25 && bmi < 30) {
     return 'You are in the overweight range. Consider making some lifestyle changes to reach a healthy weight.';
   } else {
-    return 'You are in the obese range. It's important to make changes to your diet and exercise routine to improve your health.';
+    return 'You are in the obese range. Its important to make changes to your diet and exercise routine to improve your health.';
   }
 };
 
