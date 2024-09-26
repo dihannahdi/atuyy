@@ -1,12 +1,12 @@
 // page.js
 "use client";
 
-
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import UserDataInput from '@/components/UserDataInput'; // Import the UserDataInput component
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/Select'; // Import the Select components
 
 const activityLevelMultiplier = {
   sedentary: 1.2,
