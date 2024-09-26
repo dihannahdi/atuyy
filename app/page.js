@@ -102,6 +102,17 @@ const HealthDashboardChatbot = () => {
         />
       ),
     },
+    {
+      title: 'Personalized Fun Summary',
+      component: (
+        <PersonalizedSummary
+          bmi={bmi}
+          bmr={bmr}
+          macros={macros}
+          userData={userData}
+        />
+      ),
+    },
   ];
 
   const calculateBmi = () => {
@@ -287,6 +298,36 @@ const HealthSummary = ({ bmi, bmr, macros, userData }) => {
   );
 };
 
+const PersonalizedSummary = ({ bmi, bmr, macros, userData }) => {
+  return (
+    <div className="space-y-6">
+      <motion.div initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+        <Card>
+          <CardHeader>Congratulations on Completing Your Health Assessment!</CardHeader>
+          <CardContent>
+            <p className="text-lg text-center mb-4">
+              Great job, {userData.gender === 'male' ? 'Mr.' : 'Ms.'} {userData.age} years old! 🎉
+            </p>
+            <p className="text-lg text-center">
+              Your personalized health summary is ready. Here are some fun facts and tips to keep you motivated:
+            </p>
+            <ul className="list-disc list-inside space-y-2 mt-4">
+              <li>Your BMI is <strong>{bmi}</strong>, which is considered <strong>{getBmiCategory(bmi)}</strong>.</li>
+              <li>Your daily calorie needs are around <strong>{Math.round(bmr * activityLevelMultiplier[userData.activityLevel])} kcal/day</strong>.</li>
+              <li>For a balanced diet, aim for <strong>{macros.protein}g</strong> of protein, <strong>{macros.fat}g</strong> of fats, and <strong>{macros.carbs}g</strong> of carbs daily.</li>
+              <li>Remember, consistency is key! Keep up the good work and stay active.</li>
+              <li>Stay hydrated and make sure to get enough sleep for optimal health.</li>
+            </ul>
+            <p className="text-lg text-center mt-4">
+              Keep pushing towards your goals, and remember to have fun along the way! 🌟
+            </p>
+          </CardContent>
+        </Card>
+      </motion.div>
+    </div>
+  );
+};
+
 const MacroProgressBar = ({ label, value, max }) => {
   const percentage = (value / max) * 100;
   return (
@@ -320,7 +361,7 @@ const getBmiDescription = (bmi) => {
   } else if (bmi >= 25 && bmi < 30) {
     return 'You are in the overweight range. Consider making some lifestyle changes to reach a healthy weight.';
   } else {
-    return 'You are in the obese range. Its important to make changes to your diet and exercise routine to improve your health.';
+    return 'You are in the obese range. It\'s important to make changes to your diet and exercise routine to improve your health.';
   }
 };
 
