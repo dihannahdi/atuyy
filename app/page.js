@@ -104,7 +104,50 @@ const HealthDashboardChatbot = () => {
     },
   ];
 
-  // ... (keep the calculation functions as they were)
+  const calculateBmi = () => {
+    const { weight, height } = userData;
+    const bmi = weight / (height * height);
+    setBmi(bmi.toFixed(1));
+  };
+
+  const calculateBmr = () => {
+    const { weight, height, age, gender, activityLevel } = userData;
+    let bmr;
+    if (gender === 'male') {
+      bmr = 88.362 + (13.397 * weight) + (4.799 * height) - (5.677 * age);
+    } else {
+      bmr = 447.593 + (9.247 * weight) + (3.098 * height) - (4.33 * age);
+    }
+    bmr *= activityLevelMultiplier[activityLevel];
+    setBmr(Math.round(bmr));
+  };
+
+  const calculateMacros = () => {
+    const proteinRatio = 0.25;
+    const fatRatio = 0.25;
+    const carbsRatio = 0.50;
+
+    const protein = Math.round(bmr * proteinRatio / 4);
+    const fat = Math.round(bmr * fatRatio / 9);
+    const carbs = Math.round(bmr * carbsRatio / 4);
+
+    setMacros({ protein, fat, carbs });
+  };
+
+  const activityLevelMultiplier = {
+    sedentary: 1.2,
+    light: 1.375,
+    moderate: 1.55,
+    active: 1.725,
+    veryActive: 1.9,
+  };
+
+  const handleUserDataChange = (field, value) => {
+    setUserData((prevData) => ({
+      ...prevData,
+      [field]: value,
+    }));
+  };
 
   const handleNextStep = () => {
     if (currentStep < steps.length - 1) {
