@@ -138,7 +138,7 @@ const HealthDashboardChatbot = () => {
   const calculateBmi = () => {
     const { weight, height } = userData;
     const heightInMeters = height / 100;
-    const bmi = weight / (heightInMeters * heightInMeters);
+    const bmi = userData.weight && userData.height ? calculateBmi() : null;
     setBmi(bmi.toFixed(1));
   };
 
