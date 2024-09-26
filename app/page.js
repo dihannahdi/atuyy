@@ -7,6 +7,7 @@ import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import UserDataInput from '@/components/UserDataInput'; // Import the UserDataInput component
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/Select'; // Import the Select components
+import HealthSummary from '@/components/HealthSummary'; // Import the HealthSummary component
 
 const activityLevelMultiplier = {
   sedentary: 1.2,
