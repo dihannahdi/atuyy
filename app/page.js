@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { Card, CardHeader, CardContent } from 'components/ui/card';
-import { Alert, AlertDescription, AlertTitle, AlertDialog, AlertDialogAction } from 'components/ui/alert';
+import { Card, CardHeader, CardContent } from 'components\ui\card.jsx';
+import { Alert, AlertDescription, AlertTitle, AlertDialog, AlertDialogAction } from 'components\ui\alert.jsx';
 import { v4 as uuidv4 } from 'uuid';
 
 const HealthDashboardChatbot = () => {
