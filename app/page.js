@@ -9,6 +9,14 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@
 import { Progress } from '@/components/ui/progress';
 import { v4 as uuidv4 } from 'uuid';
 
+const activityLevelMultiplier = {
+  sedentary: 1.2,
+  light: 1.375,
+  moderate: 1.55,
+  active: 1.725,
+  veryActive: 1.9,
+};
+
 const HealthDashboardChatbot = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [userData, setUserData] = useState({
@@ -143,14 +151,6 @@ const HealthDashboardChatbot = () => {
     const carbs = Math.round(bmr * carbsRatio / 4);
 
     setMacros({ protein, fat, carbs });
-  };
-
-  const activityLevelMultiplier = {
-    sedentary: 1.2,
-    light: 1.375,
-    moderate: 1.55,
-    active: 1.725,
-    veryActive: 1.9,
   };
 
   const handleUserDataChange = (field, value) => {
