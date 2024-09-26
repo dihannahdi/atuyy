@@ -213,19 +213,19 @@ const HealthDashboardChatbot = () => {
             exit={{ opacity: 0, x: -50 }}
             transition={{ duration: 0.5 }}
           >
-            {!showSummary ? (
-              <ChatbotStep
-                title={steps[currentStep].title}
-                component={steps[currentStep].component}
-                onNext={handleNextStep}
-              />
-            ) : (
+            {showSummary ? (
               <PersonalizedSummary
                 bmi={bmi}
                 bmr={bmr}
                 macros={macros}
                 userData={userData}
                 handleShare={handleShare}
+              />
+            ) : (
+              <ChatbotStep
+                title={steps[currentStep].title}
+                component={steps[currentStep].component}
+                onNext={handleNextStep}
               />
             )}
           </motion.div>
@@ -254,78 +254,6 @@ const ChatbotStep = ({ title, component, onNext }) => {
         </motion.button>
       </CardContent>
     </Card>
-  );
-};
-
-const UserDataInput = ({ field, label, value, onChange }) => {
-  return (
-    <div className="space-y-2 mb-4">
-      <label htmlFor={field} className="block font-medium text-gray-700">
-        {label}
-      </label>
-      <input
-        type="text"
-        id={field}
-        value={value || ''}
-        onChange={(e) => onChange(e.target.value)}
-        className="border border-gray-300 rounded px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
-      />
-    </div>
-  );
-};
-
-const HealthSummary = ({ bmi, bmr, macros, userData }) => {
-  return (
-    <div className="space-y-6">
-      <motion.div initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-        <Card>
-          <CardHeader>Body Mass Index (BMI)</CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold text-center mb-4">{bmi}</p>
-            <p className="text-lg text-center">
-              Your BMI is considered <strong>{getBmiCategory(bmi)}</strong>.
-            </p>
-            <p className="mt-2 text-center">
-              {getBmiDescription(bmi)}
-            </p>
-          </CardContent>
-        </Card>
-      </motion.div>
-
-      <motion.div initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.2 }}>
-        <Card>
-          <CardHeader>Basal Metabolic Rate (BMR) & Daily Calorie Needs</CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold text-center mb-4">{bmr} kcal/day</p>
-            <p className="text-lg text-center">
-              To maintain your current weight, aim for approximately{' '}
-              <strong>{Math.round(bmr * activityLevelMultiplier[userData.activityLevel])} kcal/day</strong>.
-            </p>
-            <div className="mt-4">
-              <h3 className="font-semibold mb-2">Recommended macronutrient intake:</h3>
-              <div className="space-y-2">
-                <MacroProgressBar label="Protein" value={macros.protein} max={macros.protein + macros.fat + macros.carbs} />
-                <MacroProgressBar label="Fats" value={macros.fat} max={macros.protein + macros.fat + macros.carbs} />
-                <MacroProgressBar label="Carbs" value={macros.carbs} max={macros.protein + macros.fat + macros.carbs} />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </motion.div>
-
-      <motion.div initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.4 }}>
-        <Card>
-          <CardHeader>Next Steps for a Healthy Life</CardHeader>
-          <CardContent>
-            <ul className="list-disc list-inside space-y-2">
-              <li>Maintain a varied diet with the right mix of proteins, fats, and carbohydrates.</li>
-              <li>Aim for regular physical activity to boost metabolism and maintain weight.</li>
-              <li>Don't forget to stay hydrated—water is key for metabolism and kidney function.</li>
-            </ul>
-          </CardContent>
-        </Card>
-      </motion.div>
-    </div>
   );
 };
 
@@ -363,19 +291,6 @@ const PersonalizedSummary = ({ bmi, bmr, macros, userData, handleShare }) => {
           </CardContent>
         </Card>
       </motion.div>
-    </div>
-  );
-};
-
-const MacroProgressBar = ({ label, value, max }) => {
-  const percentage = (value / max) * 100;
-  return (
-    <div>
-      <div className="flex justify-between mb-1">
-        <span>{label}</span>
-        <span>{value}g</span>
-      </div>
-      <Progress value={percentage} className="h-2" />
     </div>
   );
 };
