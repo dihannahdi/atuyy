@@ -20,6 +20,7 @@ const activityLevelMultiplier = {
 const HealthDashboardChatbot = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [userData, setUserData] = useState({
+    name: '',
     weight: '',
     height: '',
     age: '',
@@ -41,6 +42,17 @@ const HealthDashboardChatbot = () => {
   }, [currentStep]);
 
   const steps = [
+    {
+      title: 'Your Name',
+      component: (
+        <UserDataInput
+          field="name"
+          label="What is your name?"
+          value={userData.name}
+          onChange={(value) => handleUserDataChange('name', value)}
+        />
+      ),
+    },
     {
       title: 'Weight and Height',
       component: (
@@ -118,6 +130,7 @@ const HealthDashboardChatbot = () => {
           bmr={bmr}
           macros={macros}
           userData={userData}
+          handleShare={handleShare}
         />
       ),
     },
@@ -125,7 +138,8 @@ const HealthDashboardChatbot = () => {
 
   const calculateBmi = () => {
     const { weight, height } = userData;
-    const bmi = weight / (height * height);
+    const heightInMeters = height / 100;
+    const bmi = weight / (heightInMeters * heightInMeters);
     setBmi(bmi.toFixed(1));
   };
 
@@ -171,10 +185,23 @@ const HealthDashboardChatbot = () => {
     }
   };
 
+  const handleShare = () => {
+    const shareText = `Check out my health summary! BMI: ${bmi}, BMR: ${bmr} kcal/day, Macros: Protein ${macros.protein}g, Fat ${macros.fat}g, Carbs ${macros.carbs}g.`;
+    if (navigator.share) {
+      navigator.share({
+        title: 'My Health Summary',
+        text: shareText,
+        url: window.location.href,
+      });
+    } else {
+      alert('Sharing is not supported in this browser.');
+    }
+  };
+
   return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-br from-blue-100 to-purple-100">
-      <header className="bg-gray-900 text-white py-4 px-6">
-        <h1 className="text-2xl font-bold">Health Dashboard Chatbot</h1>
+    <div className="flex flex-col min-h-screen bg-gradient-to-br from-pink-100 to-yellow-100">
+      <header className="bg-gray-900 text-white py-4 px-6 text-center">
+        <h1 className="text-2xl font-bold">Health Dashboard</h1>
       </header>
       <main className="flex-1 p-6">
         <Progress value={progress} className="w-full mb-6" />
@@ -193,16 +220,20 @@ const HealthDashboardChatbot = () => {
                 onNext={handleNextStep}
               />
             ) : (
-              <HealthSummary
+              <PersonalizedSummary
                 bmi={bmi}
                 bmr={bmr}
                 macros={macros}
                 userData={userData}
+                handleShare={handleShare}
               />
             )}
           </motion.div>
         </AnimatePresence>
       </main>
+      <footer className="bg-gray-900 text-white py-4 text-center">
+        <p>&copy; {new Date().getFullYear()} Health Dashboard</p>
+      </footer>
     </div>
   );
 };
@@ -298,7 +329,7 @@ const HealthSummary = ({ bmi, bmr, macros, userData }) => {
   );
 };
 
-const PersonalizedSummary = ({ bmi, bmr, macros, userData }) => {
+const PersonalizedSummary = ({ bmi, bmr, macros, userData, handleShare }) => {
   return (
     <div className="space-y-6">
       <motion.div initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
@@ -306,7 +337,7 @@ const PersonalizedSummary = ({ bmi, bmr, macros, userData }) => {
           <CardHeader>Congratulations on Completing Your Health Assessment!</CardHeader>
           <CardContent>
             <p className="text-lg text-center mb-4">
-              Great job, {userData.gender === 'male' ? 'Mr.' : 'Ms.'} {userData.age} years old! 🎉
+              Great job, {userData.name}! 🎉
             </p>
             <p className="text-lg text-center">
               Your personalized health summary is ready. Here are some fun facts and tips to keep you motivated:
@@ -321,6 +352,14 @@ const PersonalizedSummary = ({ bmi, bmr, macros, userData }) => {
             <p className="text-lg text-center mt-4">
               Keep pushing towards your goals, and remember to have fun along the way! 🌟
             </p>
+            <motion.button
+              className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mt-4 w-full"
+              onClick={handleShare}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              Share Your Summary
+            </motion.button>
           </CardContent>
         </Card>
       </motion.div>
