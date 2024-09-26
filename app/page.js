@@ -1,13 +1,12 @@
+// page.js
 "use client";
+
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
-import { v4 as uuidv4 } from 'uuid';
+import UserDataInput from '@/components/UserDataInput'; // Import the UserDataInput component
 
 const activityLevelMultiplier = {
   sedentary: 1.2,
