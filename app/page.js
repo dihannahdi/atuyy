@@ -247,54 +247,114 @@ const PersonalizedSummary = ({ healthMetrics, userData, handleShare }) => {
   const { bmi, bmr, macros } = healthMetrics;
 
   const getBmiCategory = (bmi) => {
-    if (bmi < 18.5) return 'underweight';
-    if (bmi < 25) return 'normal';
-    if (bmi < 30) return 'overweight';
-    return 'obese';
+    if (bmi < 18.5) return { category: 'underweight', emoji: '🏃‍♂️' };
+    if (bmi < 25) return { category: 'normal', emoji: '🥗' };
+    if (bmi < 30) return { category: 'overweight', emoji: '🚶‍♂️' };
+    return { category: 'obese', emoji: '💪' };
   };
 
-  const getBmiDescription = (bmi) => {
-    if (bmi < 18.5) return 'You may want to consider gaining a few pounds to reach a healthy weight range.';
-    if (bmi < 25) return 'You are maintaining a healthy weight. Keep up the good work!';
-    if (bmi < 30) return 'You are in the overweight range. Consider making some lifestyle changes to reach a healthy weight.';
-    return 'You are in the obese range. It\'s important to make changes to your diet and exercise routine to improve your health.';
+  const getBmiAdvice = (bmi) => {
+    if (bmi < 18.5) return "Focus on nutrient-dense foods to gain healthy weight. Consider strength training to build muscle mass.";
+    if (bmi < 25) return "Great job maintaining a healthy weight! Keep up your balanced diet and regular exercise routine.";
+    if (bmi < 30) return "Small changes can make a big difference. Try incorporating more vegetables and daily walks into your routine.";
+    return "Your health is important. Consider consulting a nutritionist and starting with low-impact exercises like swimming or yoga.";
   };
+
+  const getActivityEmoji = (level) => {
+    const emojis = {
+      sedentary: '💻',
+      light: '🚶',
+      moderate: '🏋️',
+      active: '🏃',
+      veryActive: '🏅'
+    };
+    return emojis[level] || '🤷';
+  };
+
+  const getMacroChart = () => {
+    const data = [
+      { name: 'Protein', value: macros.protein },
+      { name: 'Fat', value: macros.fat },
+      { name: 'Carbs', value: macros.carbs },
+    ];
+
+    return (
+      <ResponsiveContainer width="100%" height={200}>
+        <BarChart data={data}>
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey="name" />
+          <YAxis />
+          <Tooltip />
+          <Bar dataKey="value" fill="#8884d8" />
+        </BarChart>
+      </ResponsiveContainer>
+    );
+  };
+
+  const { category, emoji } = getBmiCategory(bmi);
 
   return (
-    <motion.div initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-      <Card>
-        <CardHeader>Congratulations on Completing Your Health Assessment!</CardHeader>
-        <CardContent>
-          <p className="text-lg text-center mb-4">
-            Great job, {userData.name}! 🎉
-          </p>
-          <p className="text-lg text-center">
-            Your personalized health summary is ready. Here are some fun facts and tips to keep you motivated:
-          </p>
-          <ul className="list-disc list-inside space-y-2 mt-4">
-            <li>Your BMI is <strong>{bmi}</strong>, which is considered <strong>{getBmiCategory(bmi)}</strong>.</li>
-            <li>{getBmiDescription(bmi)}</li>
-            <li>Your daily calorie needs are around <strong>{Math.round(bmr)} kcal/day</strong>.</li>
-            <li>For a balanced diet, aim for <strong>{macros.protein}g</strong> of protein, <strong>{macros.fat}g</strong> of fats, and <strong>{macros.carbs}g</strong> of carbs daily.</li>
-            <li>Remember, consistency is key! Keep up the good work and stay active.</li>
-            <li>Stay hydrated and make sure to get enough sleep for optimal health.</li>
-          </ul>
-          <p className="text-lg text-center mt-4">
-            Keep pushing towards your goals, and remember to have fun along the way! 🌟
-          </p>
+    <motion.div 
+      initial={{ opacity: 0, y: 50 }} 
+      animate={{ opacity: 1, y: 0 }} 
+      transition={{ duration: 0.5 }}
+      className="space-y-6"
+    >
+      <Card className="bg-gradient-to-r from-blue-100 to-purple-100 shadow-lg">
+        <CardHeader className="text-2xl font-bold text-center text-gray-800">
+          Your Personalized Health Journey, {userData.name}! {emoji}
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="text-center">
+            <p className="text-4xl font-bold text-purple-600">{bmi}</p>
+            <p className="text-xl text-gray-600">Your BMI</p>
+            <p className="text-lg text-gray-700">Category: <span className="font-semibold">{category}</span></p>
+          </div>
+
+          <div className="bg-white rounded-lg p-4 shadow">
+            <h3 className="text-lg font-semibold mb-2">💡 Personal Insight</h3>
+            <p className="text-gray-700">{getBmiAdvice(bmi)}</p>
+          </div>
+
+          <div className="bg-white rounded-lg p-4 shadow">
+            <h3 className="text-lg font-semibold mb-2">🔥 Daily Energy Needs</h3>
+            <p className="text-gray-700">Your estimated daily calorie needs: <span className="font-bold text-green-600">{Math.round(bmr)} kcal</span></p>
+            <p className="text-sm text-gray-600">Based on your {userData.activityLevel} activity level {getActivityEmoji(userData.activityLevel)}</p>
+          </div>
+
+          <div className="bg-white rounded-lg p-4 shadow">
+            <h3 className="text-lg font-semibold mb-2">🍽️ Macronutrient Balance</h3>
+            {getMacroChart()}
+            <div className="mt-2 text-sm text-gray-600">
+              <p>Protein: {macros.protein}g | Fat: {macros.fat}g | Carbs: {macros.carbs}g</p>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg p-4 shadow">
+            <h3 className="text-lg font-semibold mb-2">🌟 Your Next Steps</h3>
+            <ul className="list-disc list-inside space-y-1 text-gray-700">
+              <li>Set realistic, achievable health goals</li>
+              <li>Stay hydrated with 8 glasses of water daily</li>
+              <li>Aim for 7-9 hours of quality sleep each night</li>
+              <li>Find physical activities you enjoy and do them regularly</li>
+              <li>Practice mindfulness or meditation to manage stress</li>
+            </ul>
+          </div>
+
           <motion.button
-            className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mt-4 w-full"
+            className="bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white font-bold py-2 px-4 rounded-full shadow-md w-full"
             onClick={handleShare}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
-            Share Your Summary
+            Share Your Health Journey 🌈
           </motion.button>
         </CardContent>
       </Card>
     </motion.div>
   );
 };
+
 
 
 export default HealthDashboardChatbot;
