@@ -1,12 +1,12 @@
 // page.js
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import UserDataInput from '@/components/UserDataInput';
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/Select';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import HealthSummary from '@/components/HealthSummary';
 
 const activityLevelMultiplier = {
@@ -27,173 +27,70 @@ const HealthDashboardChatbot = () => {
     gender: '',
     activityLevel: '',
   });
-  const [bmi, setBmi] = useState(null);
-  const [bmr, setBmr] = useState(null);
-  const [macros, setMacros] = useState({
-    protein: null,
-    fat: null,
-    carbs: null,
+  const [healthMetrics, setHealthMetrics] = useState({
+    bmi: null,
+    bmr: null,
+    macros: { protein: null, fat: null, carbs: null },
   });
   const [showSummary, setShowSummary] = useState(false);
   const [progress, setProgress] = useState(0);
 
-  useEffect(() => {
-    const steps = ['Step 1', 'Step 2', 'Step 3', 'Step 4', 'Step 5', 'Step 6'];
-    setProgress((currentStep / (steps.length - 1)) * 100);
-  }, [currentStep]);
-
   const steps = [
-    {
-      title: 'Your Name',
-      component: (
-        <UserDataInput
-          field="name"
-          label="What is your name?"
-          value={userData.name}
-          onChange={(value) => handleUserDataChange('name', value)}
-        />
-      ),
-    },
-    {
-      title: 'Weight and Height',
-      component: (
-        <>
-          <UserDataInput
-            field="weight"
-            label="Weight (kg)"
-            value={userData.weight}
-            onChange={(value) => handleUserDataChange('weight', value)}
-          />
-          <UserDataInput
-            field="height"
-            label="Height (cm)"
-            value={userData.height}
-            onChange={(value) => handleUserDataChange('height', value)}
-          />
-        </>
-      ),
-    },
-    {
-      title: 'Age and Gender',
-      component: (
-        <>
-          <UserDataInput
-            field="age"
-            label="Age"
-            value={userData.age}
-            onChange={(value) => handleUserDataChange('age', value)}
-          />
-          <Select onValueChange={(value) => handleUserDataChange('gender', value)}>
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Select gender" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="male">Male</SelectItem>
-              <SelectItem value="female">Female</SelectItem>
-            </SelectContent>
-          </Select>
-        </>
-      ),
-    },
-    {
-      title: 'Activity Level',
-      component: (
-        <Select onValueChange={(value) => handleUserDataChange('activityLevel', value)}>
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder="Select activity level" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="sedentary">Sedentary</SelectItem>
-            <SelectItem value="light">Light Exercise</SelectItem>
-            <SelectItem value="moderate">Moderate Exercise</SelectItem>
-            <SelectItem value="active">Active</SelectItem>
-            <SelectItem value="veryActive">Very Active</SelectItem>
-          </SelectContent>
-        </Select>
-      ),
-    },
-    {
-      title: 'Health Summary',
-      component: (
-        <HealthSummary
-          bmi={bmi}
-          bmr={bmr}
-          macros={macros}
-          userData={userData}
-        />
-      ),
-    },
-    {
-      title: 'Personalized Fun Summary',
-      component: (
-        <PersonalizedSummary
-          bmi={bmi}
-          bmr={bmr}
-          macros={macros}
-          userData={userData}
-          handleShare={handleShare}
-        />
-      ),
-    },
+    { title: 'Your Name', field: 'name', label: 'What is your name?' },
+    { title: 'Weight and Height', fields: ['weight', 'height'], labels: ['Weight (kg)', 'Height (cm)'] },
+    { title: 'Age and Gender', fields: ['age', 'gender'], labels: ['Age', 'Select gender'] },
+    { title: 'Activity Level', field: 'activityLevel', label: 'Select activity level' },
+    { title: 'Health Summary' },
+    { title: 'Personalized Fun Summary' },
   ];
 
-  const calculateBmi = () => {
-    const { weight, height } = userData;
-    const heightInMeters = height / 100;
-    const bmi = weight / (heightInMeters * heightInMeters);
-    setBmi(bmi.toFixed(1));
-  };
+  useEffect(() => {
+    setProgress((currentStep / (steps.length - 1)) * 100);
+  }, [currentStep, steps.length]);
 
-  const calculateBmr = () => {
+  const calculateHealthMetrics = useCallback(() => {
     const { weight, height, age, gender, activityLevel } = userData;
-    let bmr;
-    if (gender === 'male') {
-      bmr = 88.362 + (13.397 * weight) + (4.799 * height) - (5.677 * age);
-    } else {
-      bmr = 447.593 + (9.247 * weight) + (3.098 * height) - (4.33 * age);
-    }
+    const heightInMeters = height / 100;
+    const bmi = (weight / (heightInMeters * heightInMeters)).toFixed(1);
+
+    let bmr = gender === 'male'
+      ? 88.362 + (13.397 * weight) + (4.799 * height) - (5.677 * age)
+      : 447.593 + (9.247 * weight) + (3.098 * height) - (4.33 * age);
     bmr *= activityLevelMultiplier[activityLevel];
-    setBmr(Math.round(bmr));
-  };
+    bmr = Math.round(bmr);
 
-  const calculateMacros = () => {
-    const proteinRatio = 0.25;
-    const fatRatio = 0.25;
-    const carbsRatio = 0.50;
+    const proteinRatio = 0.25, fatRatio = 0.25, carbsRatio = 0.50;
+    const macros = {
+      protein: Math.round(bmr * proteinRatio / 4),
+      fat: Math.round(bmr * fatRatio / 9),
+      carbs: Math.round(bmr * carbsRatio / 4),
+    };
 
-    const protein = Math.round(bmr * proteinRatio / 4);
-    const fat = Math.round(bmr * fatRatio / 9);
-    const carbs = Math.round(bmr * carbsRatio / 4);
-
-    setMacros({ protein, fat, carbs });
-  };
+    setHealthMetrics({ bmi, bmr, macros });
+  }, [userData]);
 
   const handleUserDataChange = (field, value) => {
-    setUserData((prevData) => ({
-      ...prevData,
-      [field]: value,
-    }));
+    setUserData(prevData => ({ ...prevData, [field]: value }));
   };
 
   const handleNextStep = () => {
     if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
-      calculateBmi();
-      calculateBmr();
-      calculateMacros();
+      calculateHealthMetrics();
       setShowSummary(true);
     }
   };
 
   const handleShare = () => {
+    const { bmi, bmr, macros } = healthMetrics;
     const shareText = `Check out my health summary! BMI: ${bmi}, BMR: ${bmr} kcal/day, Macros: Protein ${macros.protein}g, Fat ${macros.fat}g, Carbs ${macros.carbs}g.`;
     if (navigator.share) {
       navigator.share({
         title: 'My Health Summary',
         text: shareText,
         url: window.location.href,
-      });
+      }).catch(error => console.error('Error sharing:', error));
     } else {
       alert('Sharing is not supported in this browser.');
     }
@@ -216,16 +113,15 @@ const HealthDashboardChatbot = () => {
           >
             {showSummary ? (
               <PersonalizedSummary
-                bmi={bmi}
-                bmr={bmr}
-                macros={macros}
+                healthMetrics={healthMetrics}
                 userData={userData}
                 handleShare={handleShare}
               />
             ) : (
               <ChatbotStep
-                title={steps[currentStep].title}
-                component={steps[currentStep].component}
+                step={steps[currentStep]}
+                userData={userData}
+                onDataChange={handleUserDataChange}
                 onNext={handleNextStep}
               />
             )}
@@ -239,85 +135,131 @@ const HealthDashboardChatbot = () => {
   );
 };
 
-const ChatbotStep = ({ title, component, onNext }) => {
+const ChatbotStep = ({ step, userData, onDataChange, onNext }) => {
+  if (step.title === 'Health Summary') {
+    return (
+      <Card className="w-full max-w-md mx-auto">
+        <CardHeader className="text-xl font-semibold">{step.title}</CardHeader>
+        <CardContent>
+          <HealthSummary userData={userData} />
+          <NextButton onClick={onNext} />
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card className="w-full max-w-md mx-auto">
-      <CardHeader className="text-xl font-semibold">{title}</CardHeader>
+      <CardHeader className="text-xl font-semibold">{step.title}</CardHeader>
       <CardContent>
-        {component}
-        <motion.button
-          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-4 w-full"
-          onClick={onNext}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-        >
-          Next
-        </motion.button>
+        {step.fields ? (
+          step.fields.map((field, index) => (
+            <UserDataInput
+              key={field}
+              field={field}
+              label={step.labels[index]}
+              value={userData[field]}
+              onChange={(value) => onDataChange(field, value)}
+            />
+          ))
+        ) : (
+          step.field === 'gender' || step.field === 'activityLevel' ? (
+            <Select onValueChange={(value) => onDataChange(step.field, value)}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder={step.label} />
+              </SelectTrigger>
+              <SelectContent>
+                {step.field === 'gender' ? (
+                  <>
+                    <SelectItem value="male">Male</SelectItem>
+                    <SelectItem value="female">Female</SelectItem>
+                  </>
+                ) : (
+                  Object.keys(activityLevelMultiplier).map((level) => (
+                    <SelectItem key={level} value={level}>
+                      {level.charAt(0).toUpperCase() + level.slice(1)}
+                    </SelectItem>
+                  ))
+                )}
+              </SelectContent>
+            </Select>
+          ) : (
+            <UserDataInput
+              field={step.field}
+              label={step.label}
+              value={userData[step.field]}
+              onChange={(value) => onDataChange(step.field, value)}
+            />
+          )
+        )}
+        <NextButton onClick={onNext} />
       </CardContent>
     </Card>
   );
 };
 
-const PersonalizedSummary = ({ bmi, bmr, macros, userData, handleShare }) => {
-  return (
-    <div className="space-y-6">
-      <motion.div initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-        <Card>
-          <CardHeader>Congratulations on Completing Your Health Assessment!</CardHeader>
-          <CardContent>
-            <p className="text-lg text-center mb-4">
-              Great job, {userData.name}! 🎉
-            </p>
-            <p className="text-lg text-center">
-              Your personalized health summary is ready. Here are some fun facts and tips to keep you motivated:
-            </p>
-            <ul className="list-disc list-inside space-y-2 mt-4">
-              <li>Your BMI is <strong>{bmi}</strong>, which is considered <strong>{getBmiCategory(bmi)}</strong>.</li>
-              <li>Your daily calorie needs are around <strong>{Math.round(bmr * activityLevelMultiplier[userData.activityLevel])} kcal/day</strong>.</li>
-              <li>For a balanced diet, aim for <strong>{macros.protein}g</strong> of protein, <strong>{macros.fat}g</strong> of fats, and <strong>{macros.carbs}g</strong> of carbs daily.</li>
-              <li>Remember, consistency is key! Keep up the good work and stay active.</li>
-              <li>Stay hydrated and make sure to get enough sleep for optimal health.</li>
-            </ul>
-            <p className="text-lg text-center mt-4">
-              Keep pushing towards your goals, and remember to have fun along the way! 🌟
-            </p>
-            <motion.button
-              className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mt-4 w-full"
-              onClick={handleShare}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              Share Your Summary
-            </motion.button>
-          </CardContent>
-        </Card>
-      </motion.div>
-    </div>
-  );
-};
+const NextButton = ({ onClick }) => (
+  <motion.button
+    className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-4 w-full"
+    onClick={onClick}
+    whileHover={{ scale: 1.05 }}
+    whileTap={{ scale: 0.95 }}
+  >
+    Next
+  </motion.button>
+);
 
-const getBmiCategory = (bmi) => {
-  if (bmi < 18.5) {
-    return 'underweight';
-  } else if (bmi >= 18.5 && bmi < 25) {
-    return 'normal';
-  } else if (bmi >= 25 && bmi < 30) {
-    return 'overweight';
-  } else {
+const PersonalizedSummary = ({ healthMetrics, userData, handleShare }) => {
+  const { bmi, bmr, macros } = healthMetrics;
+
+  const getBmiCategory = (bmi) => {
+    if (bmi < 18.5) return 'underweight';
+    if (bmi < 25) return 'normal';
+    if (bmi < 30) return 'overweight';
     return 'obese';
-  }
-};
+  };
 
-const getBmiDescription = (bmi) => {
-  if (bmi < 18.5) {
-    return 'You may want to consider gaining a few pounds to reach a healthy weight range.';
-  } else if (bmi >= 18.5 && bmi < 25) {
-    return 'You are maintaining a healthy weight. Keep up the good work!';
-  } else if (bmi >= 25 && bmi < 30) {
-    return 'You are in the overweight range. Consider making some lifestyle changes to reach a healthy weight.';
-  } else {
+  const getBmiDescription = (bmi) => {
+    if (bmi < 18.5) return 'You may want to consider gaining a few pounds to reach a healthy weight range.';
+    if (bmi < 25) return 'You are maintaining a healthy weight. Keep up the good work!';
+    if (bmi < 30) return 'You are in the overweight range. Consider making some lifestyle changes to reach a healthy weight.';
     return 'You are in the obese range. It\'s important to make changes to your diet and exercise routine to improve your health.';
-  }
+  };
+
+  return (
+    <motion.div initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+      <Card>
+        <CardHeader>Congratulations on Completing Your Health Assessment!</CardHeader>
+        <CardContent>
+          <p className="text-lg text-center mb-4">
+            Great job, {userData.name}! 🎉
+          </p>
+          <p className="text-lg text-center">
+            Your personalized health summary is ready. Here are some fun facts and tips to keep you motivated:
+          </p>
+          <ul className="list-disc list-inside space-y-2 mt-4">
+            <li>Your BMI is <strong>{bmi}</strong>, which is considered <strong>{getBmiCategory(bmi)}</strong>.</li>
+            <li>{getBmiDescription(bmi)}</li>
+            <li>Your daily calorie needs are around <strong>{Math.round(bmr)} kcal/day</strong>.</li>
+            <li>For a balanced diet, aim for <strong>{macros.protein}g</strong> of protein, <strong>{macros.fat}g</strong> of fats, and <strong>{macros.carbs}g</strong> of carbs daily.</li>
+            <li>Remember, consistency is key! Keep up the good work and stay active.</li>
+            <li>Stay hydrated and make sure to get enough sleep for optimal health.</li>
+          </ul>
+          <p className="text-lg text-center mt-4">
+            Keep pushing towards your goals, and remember to have fun along the way! 🌟
+          </p>
+          <motion.button
+            className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mt-4 w-full"
+            onClick={handleShare}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            Share Your Summary
+          </motion.button>
+        </CardContent>
+      </Card>
+    </motion.div>
+  );
 };
 
 export default HealthDashboardChatbot;
