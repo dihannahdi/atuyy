@@ -38,6 +38,7 @@ const HealthDashboardChatbot = () => {
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
+    const steps = ['Step 1', 'Step 2', 'Step 3']; // Ensure steps are defined
     setProgress((currentStep / (steps.length - 1)) * 100);
   }, [currentStep]);
 
