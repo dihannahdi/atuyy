@@ -4,9 +4,9 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Input } from '@/components/ui/input';
+import UserDataInput from '@/components/UserDataInput';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import HealthSummary from '@/components/HealthSummary';
 
 const activityLevelMultiplier = {
   sedentary: 1.2,
@@ -47,37 +47,46 @@ const HealthDashboardChatbot = () => {
     setProgress((currentStep / (steps.length - 1)) * 100);
   }, [currentStep, steps.length]);
 
-  const calculateHealthMetrics = useCallback(() => {
-    const { weight, height, age, gender, activityLevel } = userData;
+  const calculateBMI = (weight, height) => {
     const heightInMeters = height / 100;
-    const bmi = (weight / (heightInMeters * heightInMeters)).toFixed(1);
-
-    let bmr = gender === 'male'
-      ? 88.362 + (13.397 * weight) + (4.799 * height) - (5.677 * age)
-      : 447.593 + (9.247 * weight) + (3.098 * height) - (4.33 * age);
-    bmr *= activityLevelMultiplier[activityLevel];
-    bmr = Math.round(bmr);
-
-    const proteinRatio = 0.25, fatRatio = 0.25, carbsRatio = 0.50;
-    const protein = healthMetrics?.macros?.protein || 0;
-    const macros = {
-      protein: Math.round(bmr * proteinRatio / 4),
-      fat: Math.round(bmr * fatRatio / 9),
-      carbs: Math.round(bmr * carbsRatio / 4),
-    };
-
-    setHealthMetrics({ bmi, bmr, macros });
-  }, [userData]);
-
-  const handleUserDataChange = (field, value) => {
-    setUserData(prevData => ({ ...prevData, [field]: value }));
+    return (weight / (heightInMeters * heightInMeters)).toFixed(2);
   };
 
-  const handleNextStep = () => {
+  const calculateBMR = (weight, height, age, gender) => {
+    if (gender === 'male') {
+      return (88.362 + (13.397 * weight) + (4.799 * height) - (5.677 * age)).toFixed(2);
+    } else if (gender === 'female') {
+      return (447.593 + (9.247 * weight) + (3.098 * height) - (4.330 * age)).toFixed(2);
+    }
+    return null;
+  };
+
+  const updateHealthMetrics = useCallback(() => {
+    const { weight, height, age, gender } = userData;
+    if (weight && height && age && gender) {
+      const bmi = calculateBMI(weight, height);
+      const bmr = calculateBMR(weight, height, age, gender);
+      setHealthMetrics((prevMetrics) => ({
+        ...prevMetrics,
+        bmi,
+        bmr,
+      }));
+    }
+  }, [userData]);
+
+  useEffect(() => {
+    updateHealthMetrics();
+  }, [userData, updateHealthMetrics]);
+
+  const onDataChange = (field, value) => {
+    setUserData((prevData) => ({ ...prevData, [field]: value }));
+  };
+
+  const onNext = () => {
     if (currentStep < steps.length - 1) {
-      setCurrentStep(currentStep + 1);
+      setCurrentStep((prevStep) => prevStep + 1);
+      setProgress(((currentStep + 1) / steps.length) * 100);
     } else {
-      calculateHealthMetrics();
       setShowSummary(true);
     }
   };
@@ -94,56 +103,42 @@ const HealthDashboardChatbot = () => {
     } else {
       alert('Sharing is not supported in this browser.');
     }
+    console.log('Share button clicked');
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-br from-green-50 to-blue-50 transition-all duration-500">
-      <header className="bg-teal-600 text-white py-6 px-6 text-center shadow-md transition-all duration-300">
-        <motion.h1 
-          className="text-3xl font-bold"
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          Health Journey
-        </motion.h1>
-      </header>
-      <main className="flex-1 p-6 max-w-4xl mx-auto w-full">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.5 }}
-        >
-          <Progress value={progress} className="w-full mb-6 h-2 bg-teal-200" indicatorColor="bg-teal-600" />
-        </motion.div>
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={currentStep}
-            initial={{ opacity: 0, x: 50 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -50 }}
-            transition={{ duration: 0.5 }}
-          >
-            {showSummary ? (
-              <PersonalizedSummary
-                healthMetrics={healthMetrics}
-                userData={userData}
-                handleShare={handleShare}
-              />
-            ) : (
-              <ChatbotStep
-                step={steps[currentStep]}
-                userData={userData}
-                onDataChange={handleUserDataChange}
-                onNext={handleNextStep}
-              />
-            )}
-          </motion.div>
-        </AnimatePresence>
-      </main>
-      <footer className="bg-teal-600 text-white py-4 text-center transition-all duration-300">
-        <p>&copy; {new Date().getFullYear()} Health Journey</p>
-      </footer>
+    <div className="min-h-screen flex items-center justify-center bg-gray-100">
+      <Card className="w-full max-w-lg shadow-lg">
+        <CardHeader className="bg-blue-500 text-white text-center py-4 rounded-t-lg">
+          <h2 className="text-2xl font-semibold">{steps[currentStep].title}</h2>
+        </CardHeader>
+        <CardContent className="p-6">
+          {steps[currentStep].field === 'activityLevel' ? (
+            <Select onValueChange={(value) => onDataChange(steps[currentStep].field, value)}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder={steps[currentStep].label} />
+              </SelectTrigger>
+              <SelectContent>
+                {Object.keys(activityLevelMultiplier).map((level) => (
+                  <SelectItem key={level} value={level}>
+                    {level.charAt(0).toUpperCase() + level.slice(1)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          ) : (
+            <UserDataInput
+              field={steps[currentStep].field}
+              label={steps[currentStep].label}
+              value={userData[steps[currentStep].field]}
+              onChange={(value) => onDataChange(steps[currentStep].field, value)}
+            />
+          )}
+          <NextButton onClick={onNext} />
+          <Progress value={progress} className="mt-4" />
+        </CardContent>
+      </Card>
+      {showSummary && <PersonalizedSummary healthMetrics={healthMetrics} userData={userData} handleShare={handleShare} />}
     </div>
   );
 };
@@ -183,60 +178,66 @@ const ChatbotStep = ({ step, userData, onDataChange, onNext }) => {
       <Card className="w-full max-w-md mx-auto bg-white shadow-lg rounded-lg overflow-hidden transition-all duration-300 hover:shadow-xl">
         <CardHeader className="text-xl font-semibold bg-teal-500 text-white py-4">{step.title}</CardHeader>
         <CardContent className="p-6">
-        {step.fields ? (
-          step.fields.map((field, index) => (
-            field === 'gender' ? (
-              <Select 
-                key={field}
-                onValueChange={(value) => onDataChange(field, value)}
-              >
-                <SelectTrigger className="w-full mb-4">
-                  <SelectValue placeholder="Select gender" />
+          {step.fields ? (
+            step.fields.map((field, index) => (
+              field === 'gender' ? (
+                <Select 
+                  key={field}
+                  onValueChange={(value) => onDataChange(field, value)}
+                >
+                  <SelectTrigger className="w-full mb-4">
+                    <SelectValue placeholder="Select gender" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="male">Male</SelectItem>
+                    <SelectItem value="female">Female</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
+                    <SelectItem value="prefer-not-to-say">Prefer not to say</SelectItem>
+                  </SelectContent>
+                </Select>
+              ) : (
+                <UserDataInput
+                  key={field}
+                  field={field}
+                  label={step.labels[index]}
+                  value={userData[field]}
+                  onChange={(value) => onDataChange(field, value)}
+                />
+              )
+            ))
+          ) : (
+            step.field === 'activityLevel' ? (
+              <Select onValueChange={(value) => onDataChange(step.field, value)}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder={step.label} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="male">Male</SelectItem>
-                  <SelectItem value="female">Female</SelectItem>
-                  <SelectItem value="other">Other</SelectItem>
-                  <SelectItem value="prefer-not-to-say">Prefer not to say</SelectItem>
+                  {Object.keys(activityLevelMultiplier).map((level) => (
+                    <SelectItem key={level} value={level}>
+                      {level.charAt(0).toUpperCase() + level.slice(1)}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             ) : (
-              <UserDataInput
-                key={field}
-                field={field}
-                label={step.labels[index]}
-                value={userData[field]}
-                onChange={(value) => onDataChange(field, value)}
-              />
+              <>
+                <UserDataInput
+                  field={step.field}
+                  label={step.label}
+                  value={userData[step.field]}
+                  onChange={(value) => onDataChange(step.field, value)} 
+                />
+                <motion.button
+                  className="bg-teal-500 hover:bg-teal-600 text-white font-bold py-2 px-4 rounded-full mt-4 w-full transition-all duration-300"
+                  onClick={onNext}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  Next
+                </motion.button>
+              </>
             )
-          ))
-        ) : (
-          step.field === 'activityLevel' ? (
-            <Select onValueChange={(value) => onDataChange(step.field, value)}>
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder={step.label} />
-              </SelectTrigger>
-              <SelectContent>
-                {Object.keys(activityLevelMultiplier).map((level) => (
-                  <SelectItem key={level} value={level}>
-                    {level.charAt(0).toUpperCase() + level.slice(1)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          ) : (
-            <><UserDataInput
-                    field={step.field}
-                    label={step.label}
-                    value={userData[step.field]}
-                    onChange={(value) => onDataChange(step.field, value)} /><motion.button
-                      className="bg-teal-500 hover:bg-teal-600 text-white font-bold py-2 px-4 rounded-full mt-4 w-full transition-all duration-300"
-                      onClick={onNext}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                    >
-                      Next
-                    </motion.button></>
+          )}
         </CardContent>
       </Card>
     </motion.div>
