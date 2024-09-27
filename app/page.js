@@ -4,9 +4,9 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Input } from '@/components/ui/input'; // Import the Input component
+import { Input } from '@/components/ui/input';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
-import HealthSummary from '@/components/HealthSummary';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 const activityLevelMultiplier = {
   sedentary: 1.2,
@@ -59,6 +59,7 @@ const HealthDashboardChatbot = () => {
     bmr = Math.round(bmr);
 
     const proteinRatio = 0.25, fatRatio = 0.25, carbsRatio = 0.50;
+    const protein = healthMetrics?.macros?.protein || 0;
     const macros = {
       protein: Math.round(bmr * proteinRatio / 4),
       fat: Math.round(bmr * fatRatio / 9),
@@ -96,12 +97,25 @@ const HealthDashboardChatbot = () => {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-br from-pink-100 to-yellow-100">
-      <header className="bg-gray-900 text-white py-4 px-6 text-center">
-        <h1 className="text-2xl font-bold">Health Dashboard</h1>
+    <div className="flex flex-col min-h-screen bg-gradient-to-br from-green-50 to-blue-50 transition-all duration-500">
+      <header className="bg-teal-600 text-white py-6 px-6 text-center shadow-md transition-all duration-300">
+        <motion.h1 
+          className="text-3xl font-bold"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          Health Journey
+        </motion.h1>
       </header>
-      <main className="flex-1 p-6">
-        <Progress value={progress} className="w-full mb-6" />
+      <main className="flex-1 p-6 max-w-4xl mx-auto w-full">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5 }}
+        >
+          <Progress value={progress} className="w-full mb-6 h-2 bg-teal-200" indicatorColor="bg-teal-600" />
+        </motion.div>
         <AnimatePresence mode="wait">
           <motion.div
             key={currentStep}
@@ -127,8 +141,8 @@ const HealthDashboardChatbot = () => {
           </motion.div>
         </AnimatePresence>
       </main>
-      <footer className="bg-gray-900 text-white py-4 text-center">
-        <p>&copy; {new Date().getFullYear()} Health Dashboard</p>
+      <footer className="bg-teal-600 text-white py-4 text-center transition-all duration-300">
+        <p>&copy; {new Date().getFullYear()} Health Journey</p>
       </footer>
     </div>
   );
