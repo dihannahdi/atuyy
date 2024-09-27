@@ -174,22 +174,15 @@ const UserDataInput = ({ field, label, value, onChange }) => {
 };
 
 const ChatbotStep = ({ step, userData, onDataChange, onNext }) => {
-  if (step.title === 'Health Summary') {
-    return (
-      <Card className="w-full max-w-md mx-auto">
-        <CardHeader className="text-xl font-semibold">{step.title}</CardHeader>
-        <CardContent>
-          <HealthSummary userData={userData} />
-          <NextButton onClick={onNext} />
-        </CardContent>
-      </Card>
-    );
-  }
-
   return (
-    <Card className="w-full max-w-md mx-auto">
-      <CardHeader className="text-xl font-semibold">{step.title}</CardHeader>
-      <CardContent>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+    >
+      <Card className="w-full max-w-md mx-auto bg-white shadow-lg rounded-lg overflow-hidden transition-all duration-300 hover:shadow-xl">
+        <CardHeader className="text-xl font-semibold bg-teal-500 text-white py-4">{step.title}</CardHeader>
+        <CardContent className="p-6">
         {step.fields ? (
           step.fields.map((field, index) => (
             field === 'gender' ? (
@@ -232,17 +225,21 @@ const ChatbotStep = ({ step, userData, onDataChange, onNext }) => {
               </SelectContent>
             </Select>
           ) : (
-            <UserDataInput
-              field={step.field}
-              label={step.label}
-              value={userData[step.field]}
-              onChange={(value) => onDataChange(step.field, value)}
-            />
-          )
-        )}
-        <NextButton onClick={onNext} />
-      </CardContent>
-    </Card>
+            <><UserDataInput
+                    field={step.field}
+                    label={step.label}
+                    value={userData[step.field]}
+                    onChange={(value) => onDataChange(step.field, value)} /><motion.button
+                      className="bg-teal-500 hover:bg-teal-600 text-white font-bold py-2 px-4 rounded-full mt-4 w-full transition-all duration-300"
+                      onClick={onNext}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      Next
+                    </motion.button></>
+        </CardContent>
+      </Card>
+    </motion.div>
   );
 };
 
@@ -314,49 +311,74 @@ const PersonalizedSummary = ({ healthMetrics, userData, handleShare }) => {
       transition={{ duration: 0.5 }}
       className="space-y-6"
     >
-      <Card className="bg-gradient-to-r from-blue-100 to-purple-100 shadow-lg">
-        <CardHeader className="text-2xl font-bold text-center text-gray-800">
-          Your Personalized Health Journey, {userData.name}! {emoji}
+      <Card className="bg-gradient-to-r from-teal-100 to-blue-100 shadow-lg rounded-lg overflow-hidden transition-all duration-300 hover:shadow-xl">
+        <CardHeader className="text-2xl font-bold text-center text-teal-800 py-6">
+          Your Health Journey, {userData.name}! {getBmiCategory(bmi).emoji}
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="text-center">
-            <p className="text-4xl font-bold text-purple-600">{bmi}</p>
-            <p className="text-xl text-gray-600">Your BMI</p>
-            <p className="text-lg text-gray-700">Category: <span className="font-semibold">{category}</span></p>
-          </div>
+        <CardContent className="space-y-6 p-6">
+          <motion.div 
+            className="text-center"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.2, duration: 0.5 }}
+          >
+            <p className="text-4xl font-bold text-teal-600">{bmi}</p>
+            <p className="text-xl text-teal-700">Your BMI</p>
+            <p className="text-lg text-teal-700">Category: <span className="font-semibold">{getBmiCategory(bmi).category}</span></p>
+          </motion.div>
 
-          <div className="bg-white rounded-lg p-4 shadow">
-            <h3 className="text-lg font-semibold mb-2">💡 Personal Insight</h3>
-            <p className="text-gray-700">{getBmiAdvice(bmi)}</p>
-          </div>
+          <motion.div 
+            className="bg-white rounded-lg p-4 shadow transition-all duration-300 hover:shadow-md"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4, duration: 0.5 }}
+          >
+            <h3 className="text-lg font-semibold mb-2 text-teal-700">💡 Personal Insight</h3>
+            <p className="text-teal-800">{getBmiAdvice(bmi)}</p>
+          </motion.div>
 
-          <div className="bg-white rounded-lg p-4 shadow">
-            <h3 className="text-lg font-semibold mb-2">🔥 Daily Energy Needs</h3>
-            <p className="text-gray-700">Your estimated daily calorie needs: <span className="font-bold text-green-600">{Math.round(bmr)} kcal</span></p>
-            <p className="text-sm text-gray-600">Based on your {userData.activityLevel} activity level {getActivityEmoji(userData.activityLevel)}</p>
-          </div>
+          <motion.div 
+            className="bg-white rounded-lg p-4 shadow transition-all duration-300 hover:shadow-md"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6, duration: 0.5 }}
+          >
+            <h3 className="text-lg font-semibold mb-2 text-teal-700">🔥 Daily Energy Needs</h3>
+            <p className="text-teal-800">Your estimated daily calorie needs: <span className="font-bold text-teal-600">{Math.round(bmr)} kcal</span></p>
+            <p className="text-sm text-teal-600">Based on your {userData.activityLevel} activity level {getActivityEmoji(userData.activityLevel)}</p>
+          </motion.div>
 
-          <div className="bg-white rounded-lg p-4 shadow">
-            <h3 className="text-lg font-semibold mb-2">🍽️ Macronutrient Balance</h3>
+          <motion.div 
+            className="bg-white rounded-lg p-4 shadow transition-all duration-300 hover:shadow-md"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.8, duration: 0.5 }}
+          >
+            <h3 className="text-lg font-semibold mb-2 text-teal-700">🍽️ Macronutrient Balance</h3>
             {getMacroChart()}
-            <div className="mt-2 text-sm text-gray-600">
+            <div className="mt-2 text-sm text-teal-600">
               <p>Protein: {macros.protein}g | Fat: {macros.fat}g | Carbs: {macros.carbs}g</p>
             </div>
-          </div>
+          </motion.div>
 
-          <div className="bg-white rounded-lg p-4 shadow">
-            <h3 className="text-lg font-semibold mb-2">🌟 Your Next Steps</h3>
-            <ul className="list-disc list-inside space-y-1 text-gray-700">
+          <motion.div 
+            className="bg-white rounded-lg p-4 shadow transition-all duration-300 hover:shadow-md"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1, duration: 0.5 }}
+          >
+            <h3 className="text-lg font-semibold mb-2 text-teal-700">🌟 Your Next Steps</h3>
+            <ul className="list-disc list-inside space-y-1 text-teal-800">
               <li>Set realistic, achievable health goals</li>
               <li>Stay hydrated with 8 glasses of water daily</li>
               <li>Aim for 7-9 hours of quality sleep each night</li>
               <li>Find physical activities you enjoy and do them regularly</li>
               <li>Practice mindfulness or meditation to manage stress</li>
             </ul>
-          </div>
+          </motion.div>
 
           <motion.button
-            className="bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white font-bold py-2 px-4 rounded-full shadow-md w-full"
+            className="bg-gradient-to-r from-teal-500 to-blue-500 hover:from-teal-600 hover:to-blue-600 text-white font-bold py-3 px-6 rounded-full shadow-md w-full transition-all duration-300"
             onClick={handleShare}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
