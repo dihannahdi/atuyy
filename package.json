@@ -24,6 +24,7 @@
     "next": "14.2.13",
     "react": "^18",
     "react-dom": "^18",
+    "react-export": "^0.0.0",
     "react-lazy": "^1.1.0",
     "recharts": "^2.12.7",
     "tailwind-merge": "^2.5.2",
