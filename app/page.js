@@ -1,12 +1,16 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, lazy, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Card, CardHeader, CardContent } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
-import Input from 'components\ui\input.jsx';
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
-import HealthSummary from '@/components/HealthSummary';
+import { Card, CardHeader, CardContent } from '../components/ui/card';
+import { Progress } from '../components/ui/progress';
+import Input from '../components/ui/input';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '../components/ui/select';
+import HealthSummary from '../components/HealthSummary';
+import { validateInput, debounce } from '../utils/helpers';
+import { fetchUserData, saveUserData } from '../services/api';
+
+const LazyComponent = lazy(() => import('@/components/LazyComponent'));
 
 const activityLevelMultiplier = {
   sedentary: 1.2,
@@ -33,25 +37,26 @@ const HealthDashboardChatbot = () => {
   });
   const [showSummary, setShowSummary] = useState(false);
   const [progress, setProgress] = useState(0);
-
+  const [errors, setErrors] = useState({});
+  
   const steps = [
     { title: 'Your Name', field: 'name', label: 'What is your name?' },
     { title: 'Weight and Height', fields: ['weight', 'height'], labels: ['Weight (kg)', 'Height (cm)'] },
-    { title: 'Age and Gender', fields: ['age', 'gender'], labels: ['Age', 'Select gender'] },
+    { title: 'Age & Gender', fields: ['age', 'gender'], labels: ['Age', 'Select gender'] },
     { title: 'Activity Level', field: 'activityLevel', label: 'Select activity level' },
     { title: 'Health Summary' },
     { title: 'Personalized Fun Summary' },
   ];
-
+  
   useEffect(() => {
     setProgress((currentStep / (steps.length - 1)) * 100);
   }, [currentStep, steps.length]);
-
+  
   const calculateBMI = (weight, height) => {
     const heightInMeters = height / 100;
     return (weight / (heightInMeters * heightInMeters)).toFixed(2);
   };
-
+  
   const calculateBMR = (weight, height, age, gender) => {
     if (gender === 'male') {
       return (88.362 + (13.397 * weight) + (4.799 * height) - (5.677 * age)).toFixed(2);
@@ -60,7 +65,7 @@ const HealthDashboardChatbot = () => {
     }
     return null;
   };
-
+  
   const updateHealthMetrics = useCallback(() => {
     const { weight, height, age, gender } = userData;
     if (weight && height && age && gender) {
@@ -371,7 +376,7 @@ const PersonalizedSummary = ({ healthMetrics, userData, handleShare }) => {
             <h3 className="text-lg font-semibold mb-2 text-teal-700">🌟 Your Next Steps</h3>
             <ul className="list-disc list-inside space-y-1 text-teal-800">
               <li>Set realistic, achievable health goals</li>
-              <li>Stay hydrated with 8 glasses of water daily</li>
+              <li>Stay hydrated with eight glasses of water daily</li>
               <li>Aim for 7-9 hours of quality sleep each night</li>
               <li>Find physical activities you enjoy and do them regularly</li>
               <li>Practice mindfulness or meditation to manage stress</li>
