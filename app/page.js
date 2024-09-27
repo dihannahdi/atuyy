@@ -7,10 +7,6 @@ import { Progress } from '../components/ui/progress';
 import Input from '../components/ui/input';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '../components/ui/select';
 import HealthSummary from '../components/HealthSummary';
-import { validateInput, debounce } from '../utils/helpers';
-import { fetchUserData, saveUserData } from '../services/api';
-
-const LazyComponent = lazy(() => import('@/components/LazyComponent'));
 
 const activityLevelMultiplier = {
   sedentary: 1.2,
