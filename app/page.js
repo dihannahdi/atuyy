@@ -1,396 +1,179 @@
-"use client";
+import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { Card, CardHeader, CardContent } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
+import { Slider } from '@/components/ui/slider';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
-import React, { useState, useEffect, useCallback, useMemo, lazy, Suspense } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Card, CardHeader, CardContent } from '../components/ui/card';
-import { Progress } from '../components/ui/progress';
-import Input from '../components/ui/input';
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '../components/ui/select';
-import HealthSummary from '../components/HealthSummary';
-
-const activityLevelMultiplier = {
-  sedentary: 1.2,
-  light: 1.375,
-  moderate: 1.55,
-  active: 1.725,
-  veryActive: 1.9,
-};
-
-const HealthDashboardChatbot = () => {
-  const [currentStep, setCurrentStep] = useState(0);
-  const [userData, setUserData] = useState({
-    name: '',
-    weight: '',
-    height: '',
-    age: '',
-    gender: '',
-    activityLevel: '',
+const GamifiedHealthDashboard = () => {
+  const [userStats, setUserStats] = useState({
+    level: 1,
+    exp: 0,
+    nextLevelExp: 100,
+    health: 50,
+    fitness: 30,
+    nutrition: 40,
   });
-  const [healthMetrics, setHealthMetrics] = useState({
-    bmi: null,
-    bmr: null,
-    macros: { protein: null, fat: null, carbs: null },
+
+  const [dailyGoals, setDailyGoals] = useState({
+    steps: 0,
+    water: 0,
+    sleep: 0,
   });
-  const [showSummary, setShowSummary] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [errors, setErrors] = useState({});
-  
-  const steps = [
-    { title: 'Your Name', field: 'name', label: 'What is your name?' },
-    { title: 'Weight and Height', fields: ['weight', 'height'], labels: ['Weight (kg)', 'Height (cm)'] },
-    { title: 'Age & Gender', fields: ['age', 'gender'], labels: ['Age', 'Select gender'] },
-    { title: 'Activity Level', field: 'activityLevel', label: 'Select activity level' },
-    { title: 'Health Summary' },
-    { title: 'Personalized Fun Summary' },
-  ];
-  
+
+  const [showGoalSetter, setShowGoalSetter] = useState(false);
+
+  const updateStats = (stat, value) => {
+    setUserStats(prevStats => ({
+      ...prevStats,
+      [stat]: value,
+      exp: prevStats.exp + 10,
+    }));
+  };
+
+  const setDailyGoal = (goal, value) => {
+    setDailyGoals(prevGoals => ({
+      ...prevGoals,
+      [goal]: value,
+    }));
+  };
+
   useEffect(() => {
-    setProgress((currentStep / (steps.length - 1)) * 100);
-  }, [currentStep, steps.length]);
-  
-  const calculateBMI = (weight, height) => {
-    const heightInMeters = height / 100;
-    return (weight / (heightInMeters * heightInMeters)).toFixed(2);
-  };
-  
-  const calculateBMR = (weight, height, age, gender) => {
-    if (gender === 'male') {
-      return (88.362 + (13.397 * weight) + (4.799 * height) - (5.677 * age)).toFixed(2);
-    } else if (gender === 'female') {
-      return (447.593 + (9.247 * weight) + (3.098 * height) - (4.330 * age)).toFixed(2);
-    }
-    return null;
-  };
-  
-  const updateHealthMetrics = useCallback(() => {
-    const { weight, height, age, gender } = userData;
-    if (weight && height && age && gender) {
-      const bmi = calculateBMI(weight, height);
-      const bmr = calculateBMR(weight, height, age, gender);
-      setHealthMetrics((prevMetrics) => ({
-        ...prevMetrics,
-        bmi,
-        bmr,
+    if (userStats.exp >= userStats.nextLevelExp) {
+      setUserStats(prevStats => ({
+        ...prevStats,
+        level: prevStats.level + 1,
+        exp: prevStats.exp - prevStats.nextLevelExp,
+        nextLevelExp: Math.round(prevStats.nextLevelExp * 1.5),
       }));
     }
-  }, [userData]);
+  }, [userStats.exp, userStats.nextLevelExp]);
 
-  useEffect(() => {
-    updateHealthMetrics();
-  }, [userData, updateHealthMetrics]);
-
-  const onDataChange = (field, value) => {
-    setUserData((prevData) => ({ ...prevData, [field]: value }));
-  };
-
-  const onNext = () => {
-    if (currentStep < steps.length - 1) {
-      setCurrentStep((prevStep) => prevStep + 1);
-      setProgress(((currentStep + 1) / steps.length) * 100);
-    } else {
-      setShowSummary(true);
-    }
-  };
-
-  const handleShare = () => {
-    const { bmi, bmr, macros } = healthMetrics;
-    const shareText = `Check out my health summary! BMI: ${bmi}, BMR: ${bmr} kcal/day, Macros: Protein ${macros.protein}g, Fat ${macros.fat}g, Carbs ${macros.carbs}g.`;
-    if (navigator.share) {
-      navigator.share({
-        title: 'My Health Summary',
-        text: shareText,
-        url: window.location.href,
-      }).catch(error => console.error('Error sharing:', error));
-    } else {
-      alert('Sharing is not supported in this browser.');
-    }
-    console.log('Share button clicked');
-  };
+  const statsData = [
+    { name: 'Health', value: userStats.health },
+    { name: 'Fitness', value: userStats.fitness },
+    { name: 'Nutrition', value: userStats.nutrition },
+  ];
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <Card className="w-full max-w-lg shadow-lg">
-        <CardHeader className="bg-blue-500 text-white text-center py-4 rounded-t-lg">
-          <h2 className="text-2xl font-semibold">{steps[currentStep].title}</h2>
-        </CardHeader>
-        <CardContent className="p-6">
-          {steps[currentStep].field === 'activityLevel' ? (
-            <Select onValueChange={(value) => onDataChange(steps[currentStep].field, value)}>
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder={steps[currentStep].label} />
-              </SelectTrigger>
-              <SelectContent>
-                {Object.keys(activityLevelMultiplier).map((level) => (
-                  <SelectItem key={level} value={level}>
-                    {level.charAt(0).toUpperCase() + level.slice(1)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          ) : (
-            <UserDataInput
-              field={steps[currentStep].field}
-              label={steps[currentStep].label}
-              value={userData[steps[currentStep].field]}
-              onChange={(value) => onDataChange(steps[currentStep].field, value)}
-            />
-          )}
-          <NextButton onClick={onNext} />
-          <Progress value={progress} className="mt-4" />
-        </CardContent>
-      </Card>
-      {showSummary && <PersonalizedSummary healthMetrics={healthMetrics} userData={userData} handleShare={handleShare} />}
-    </div>
-  );
-};
-
-const UserDataInput = ({ field, label, value, onChange }) => {
-  const handleChange = (e) => {
-    const newValue = e.target.type === 'number' ? parseFloat(e.target.value) : e.target.value;
-    onChange(newValue);
-  };
-
-  return (
-    <div className="mb-4">
-      <label htmlFor={field} className="block text-sm font-medium text-gray-700 mb-1">
-        {label}
-      </label>
-      <Input
-        type={field === 'age' || field === 'weight' || field === 'height' ? 'number' : 'text'}
-        id={field}
-        name={field}
-        value={value}
-        onChange={handleChange}
-        className="w-full"
-        min={field === 'age' || field === 'weight' || field === 'height' ? 0 : undefined}
-        step={field === 'height' ? 0.1 : 1}
-      />
-    </div>
-  );
-};
-
-const ChatbotStep = ({ step, userData, onDataChange, onNext }) => {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-    >
-      <Card className="w-full max-w-md mx-auto bg-white shadow-lg rounded-lg overflow-hidden transition-all duration-300 hover:shadow-xl">
-        <CardHeader className="text-xl font-semibold bg-teal-500 text-white py-4">{step.title}</CardHeader>
-        <CardContent className="p-6">
-          {step.fields ? (
-            step.fields.map((field, index) => (
-              field === 'gender' ? (
-                <Select 
-                  key={field}
-                  onValueChange={(value) => onDataChange(field, value)}
-                >
-                  <SelectTrigger className="w-full mb-4">
-                    <SelectValue placeholder="Select gender" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="male">Male</SelectItem>
-                    <SelectItem value="female">Female</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
-                    <SelectItem value="prefer-not-to-say">Prefer not to say</SelectItem>
-                  </SelectContent>
-                </Select>
-              ) : (
-                <UserDataInput
-                  key={field}
-                  field={field}
-                  label={step.labels[index]}
-                  value={userData[field]}
-                  onChange={(value) => onDataChange(field, value)}
-                />
-              )
-            ))
-          ) : (
-            step.field === 'activityLevel' ? (
-              <Select onValueChange={(value) => onDataChange(step.field, value)}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder={step.label} />
-                </SelectTrigger>
-                <SelectContent>
-                  {Object.keys(activityLevelMultiplier).map((level) => (
-                    <SelectItem key={level} value={level}>
-                      {level.charAt(0).toUpperCase() + level.slice(1)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            ) : (
-              <>
-                <UserDataInput
-                  field={step.field}
-                  label={step.label}
-                  value={userData[step.field]}
-                  onChange={(value) => onDataChange(step.field, value)} 
-                />
-                <motion.button
-                  className="bg-teal-500 hover:bg-teal-600 text-white font-bold py-2 px-4 rounded-full mt-4 w-full transition-all duration-300"
-                  onClick={onNext}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  Next
-                </motion.button>
-              </>
-            )
-          )}
-        </CardContent>
-      </Card>
-    </motion.div>
-  );
-};
-
-const NextButton = ({ onClick }) => (
-  <motion.button
-    className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-4 w-full"
-    onClick={onClick}
-    whileHover={{ scale: 1.05 }}
-    whileTap={{ scale: 0.95 }}
-  >
-    Next
-  </motion.button>
-);
-
-const PersonalizedSummary = ({ healthMetrics, userData, handleShare }) => {
-  const { bmi, bmr, macros } = healthMetrics;
-
-  const getBmiCategory = (bmi) => {
-    if (bmi < 18.5) return { category: 'underweight', emoji: '🏃‍♂️' };
-    if (bmi < 25) return { category: 'normal', emoji: '🥗' };
-    if (bmi < 30) return { category: 'overweight', emoji: '🚶‍♂️' };
-    return { category: 'obese', emoji: '💪' };
-  };
-
-  const getBmiAdvice = (bmi) => {
-    if (bmi < 18.5) return "Focus on nutrient-dense foods to gain healthy weight. Consider strength training to build muscle mass.";
-    if (bmi < 25) return "Great job maintaining a healthy weight! Keep up your balanced diet and regular exercise routine.";
-    if (bmi < 30) return "Small changes can make a big difference. Try incorporating more vegetables and daily walks into your routine.";
-    return "Your health is important. Consider consulting a nutritionist and starting with low-impact exercises like swimming or yoga.";
-  };
-
-  const getActivityEmoji = (level) => {
-    const emojis = {
-      sedentary: '💻',
-      light: '🚶',
-      moderate: '🏋️',
-      active: '🏃',
-      veryActive: '🏅'
-    };
-    return emojis[level] || '🤷';
-  };
-
-  const getMacroChart = () => {
-    const data = [
-      { name: 'Protein', value: macros.protein },
-      { name: 'Fat', value: macros.fat },
-      { name: 'Carbs', value: macros.carbs },
-    ];
-
-    return (
-      <ResponsiveContainer width="100%" height={200}>
-        <BarChart data={data}>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="name" />
-          <YAxis />
-          <Tooltip />
-          <Bar dataKey="value" fill="#8884d8" />
-        </BarChart>
-      </ResponsiveContainer>
-    );
-  };
-
-  const { category, emoji } = getBmiCategory(bmi);
-
-  return (
-    <motion.div 
-      initial={{ opacity: 0, y: 50 }} 
-      animate={{ opacity: 1, y: 0 }} 
-      transition={{ duration: 0.5 }}
-      className="space-y-6"
-    >
-      <Card className="bg-gradient-to-r from-teal-100 to-blue-100 shadow-lg rounded-lg overflow-hidden transition-all duration-300 hover:shadow-xl">
-        <CardHeader className="text-2xl font-bold text-center text-teal-800 py-6">
-          Your Health Journey, {userData.name}! {getBmiCategory(bmi).emoji}
-        </CardHeader>
-        <CardContent className="space-y-6 p-6">
-          <motion.div 
-            className="text-center"
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.2, duration: 0.5 }}
-          >
-            <p className="text-4xl font-bold text-teal-600">{bmi}</p>
-            <p className="text-xl text-teal-700">Your BMI</p>
-            <p className="text-lg text-teal-700">Category: <span className="font-semibold">{getBmiCategory(bmi).category}</span></p>
-          </motion.div>
-
-          <motion.div 
-            className="bg-white rounded-lg p-4 shadow transition-all duration-300 hover:shadow-md"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4, duration: 0.5 }}
-          >
-            <h3 className="text-lg font-semibold mb-2 text-teal-700">💡 Personal Insight</h3>
-            <p className="text-teal-800">{getBmiAdvice(bmi)}</p>
-          </motion.div>
-
-          <motion.div 
-            className="bg-white rounded-lg p-4 shadow transition-all duration-300 hover:shadow-md"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6, duration: 0.5 }}
-          >
-            <h3 className="text-lg font-semibold mb-2 text-teal-700">🔥 Daily Energy Needs</h3>
-            <p className="text-teal-800">Your estimated daily calorie needs: <span className="font-bold text-teal-600">{Math.round(bmr)} kcal</span></p>
-            <p className="text-sm text-teal-600">Based on your {userData.activityLevel} activity level {getActivityEmoji(userData.activityLevel)}</p>
-          </motion.div>
-
-          <motion.div 
-            className="bg-white rounded-lg p-4 shadow transition-all duration-300 hover:shadow-md"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.8, duration: 0.5 }}
-          >
-            <h3 className="text-lg font-semibold mb-2 text-teal-700">🍽️ Macronutrient Balance</h3>
-            {getMacroChart()}
-            <div className="mt-2 text-sm text-teal-600">
-              <p>Protein: {macros.protein}g | Fat: {macros.fat}g | Carbs: {macros.carbs}g</p>
+    <div className="min-h-screen bg-gradient-to-br from-purple-400 to-indigo-600 p-8">
+      <Card className="max-w-4xl mx-auto bg-white shadow-xl rounded-xl overflow-hidden">
+        <CardHeader className="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-6">
+          <h1 className="text-3xl font-bold">Health Quest Dashboard</h1>
+          <div className="flex justify-between items-center mt-4">
+            <div>
+              <p className="text-xl">Level {userStats.level}</p>
+              <Progress value={(userStats.exp / userStats.nextLevelExp) * 100} className="w-48 mt-2" />
             </div>
-          </motion.div>
-
-          <motion.div 
-            className="bg-white rounded-lg p-4 shadow transition-all duration-300 hover:shadow-md"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1, duration: 0.5 }}
-          >
-            <h3 className="text-lg font-semibold mb-2 text-teal-700">🌟 Your Next Steps</h3>
-            <ul className="list-disc list-inside space-y-1 text-teal-800">
-              <li>Set realistic, achievable health goals</li>
-              <li>Stay hydrated with eight glasses of water daily</li>
-              <li>Aim for 7-9 hours of quality sleep each night</li>
-              <li>Find physical activities you enjoy and do them regularly</li>
-              <li>Practice mindfulness or meditation to manage stress</li>
-            </ul>
-          </motion.div>
-
-          <motion.button
-            className="bg-gradient-to-r from-teal-500 to-blue-500 hover:from-teal-600 hover:to-blue-600 text-white font-bold py-3 px-6 rounded-full shadow-md w-full transition-all duration-300"
-            onClick={handleShare}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            Share Your Health Journey 🌈
-          </motion.button>
+            <Button onClick={() => setShowGoalSetter(!showGoalSetter)} variant="secondary">
+              {showGoalSetter ? 'Hide' : 'Set'} Daily Goals
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent className="p-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <h2 className="text-2xl font-semibold mb-4">Your Stats</h2>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={statsData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <Tooltip />
+                  <Bar dataKey="value" fill="#8884d8" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+            <div>
+              <h2 className="text-2xl font-semibold mb-4">Improve Your Stats</h2>
+              {['health', 'fitness', 'nutrition'].map((stat) => (
+                <div key={stat} className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-1 capitalize">
+                    {stat}
+                  </label>
+                  <Slider
+                    defaultValue={[userStats[stat]]}
+                    max={100}
+                    step={1}
+                    onValueChange={(value) => updateStats(stat, value[0])}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+          
+          {showGoalSetter && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="mt-8 p-6 bg-gray-100 rounded-lg"
+            >
+              <h2 className="text-2xl font-semibold mb-4">Set Daily Goals</h2>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Steps
+                  </label>
+                  <Input
+                    type="number"
+                    value={dailyGoals.steps}
+                    onChange={(e) => setDailyGoal('steps', parseInt(e.target.value))}
+                    min={0}
+                    max={50000}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Water (glasses)
+                  </label>
+                  <Input
+                    type="number"
+                    value={dailyGoals.water}
+                    onChange={(e) => setDailyGoal('water', parseInt(e.target.value))}
+                    min={0}
+                    max={20}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Sleep (hours)
+                  </label>
+                  <Input
+                    type="number"
+                    value={dailyGoals.sleep}
+                    onChange={(e) => setDailyGoal('sleep', parseInt(e.target.value))}
+                    min={0}
+                    max={24}
+                  />
+                </div>
+              </div>
+            </motion.div>
+          )}
+          
+          <div className="mt-8">
+            <h2 className="text-2xl font-semibold mb-4">Health Quests</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {['Cardio Challenge', 'Nutrition Adventure', 'Mindfulness Journey'].map((quest) => (
+                <Card key={quest} className="bg-gradient-to-br from-green-400 to-blue-500 text-white">
+                  <CardContent className="p-4">
+                    <h3 className="text-lg font-semibold mb-2">{quest}</h3>
+                    <p className="text-sm mb-4">Complete this quest to level up your health!</p>
+                    <Button variant="secondary" size="sm">
+                      Start Quest
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
         </CardContent>
       </Card>
-    </motion.div>
+    </div>
   );
 };
 
-export default HealthDashboardChatbot;
+export default GamifiedHealthDashboard;
