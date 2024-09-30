@@ -147,7 +147,7 @@ const HealthQuest = () => {
 
   return (
     <div className="mt-8">
-      <h2 className="text-2xl font-semibold mb-4 text-white">Health Quest: BMI and BMR Calculator</h2>
+      <h2 className="text-2xl font-semibold mb-4 text-black">Health Quest: BMI and BMR Calculator</h2>
       <Card className="bg-gradient-to-br from-green-400 to-blue-500 p-6">
         <CardContent className="text-white">
           <div className="grid grid-cols-2 gap-4 mb-4">
