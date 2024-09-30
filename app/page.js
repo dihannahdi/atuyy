@@ -1,15 +1,21 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Card, CardHeader, CardContent } from '@/components/ui/card';
+import { motion } from 'framer-motion';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Collapsible } from "@/components/ui/collapsible";
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
+import { Slider } from '@/components/ui/slider';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
-import { useTranslation } from 'react-i18next';
+import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogAction } from '@/components/ui/alert-dialog';
+import { ExpandMore, ExpandLess } from '@mui/icons-material';
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import Link from '@mui/material/Link'; // Import Link from Material-UI
+import i18n from 'i18next'; // Import i18n instance
+import { initReactI18next } from 'react-i18next';
 
 const GamifiedHealthDashboard = () => {
   const { t, i18n } = useTranslation();
@@ -54,7 +60,33 @@ const GamifiedHealthDashboard = () => {
   };
 
   const validateField = (name, value) => {
-    // ... (validation logic remains the same)
+    let newErrors = { ...errors };
+    switch (name) {
+      case 'age':
+        if (value <= 0 || value > 120) {
+          newErrors.age = 'Age must be between 1 and 120';
+        } else {
+          delete newErrors.age;
+        }
+        break;
+      case 'weight':
+        if (value <= 0 || value > 500) {
+          newErrors.weight = 'Weight must be between 1 and 500 kg';
+        } else {
+          delete newErrors.weight;
+        }
+        break;
+      case 'height':
+        if (value <= 0 || value > 300) {
+          newErrors.height = 'Height must be between 1 and 300 cm';
+        } else {
+          delete newErrors.height;
+        }
+        break;
+      default:
+        break;
+    }
+    setErrors(newErrors);
   };
 
   const calculateHealth = () => {
