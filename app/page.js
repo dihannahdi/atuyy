@@ -10,6 +10,8 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@
 import { Slider } from '@/components/ui/slider';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogAction } from '@/components/ui/alert-dialog';
+import { Alert, AlertDescription } from "@/components/ui/alert"
+
 
 const HealthQuest = () => {
   const [userData, setUserData] = useState({
@@ -22,6 +24,8 @@ const HealthQuest = () => {
 
   const [results, setResults] = useState(null);
   const [showKidneyInfo, setShowKidneyInfo] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [funFact, setFunFact] = useState('');
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
