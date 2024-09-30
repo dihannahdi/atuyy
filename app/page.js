@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Card, CardContent, CardHeader, Collapse, Link } from '@material-ui/core';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Collapsible } from "@/components/ui/collapsible"
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,7 +11,7 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@
 import { Slider } from '@/components/ui/slider';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogAction } from '@/components/ui/alert-dialog';
-import { ExpandMore, ExpandLess } from '@material-ui/icons';
+import { ExpandMore, ExpandLess } from '@mui/icons-material';
 import { Alert, AlertDescription } from "@/components/ui/alert"
 
 
@@ -361,11 +362,11 @@ const GamifiedHealthDashboard = () => {
               >
                 Symptoms
               </Button>
-              <Collapse in={showSymptoms}>
+              <Collapsible in={showSymptoms}>
                 <div className="p-4 bg-gray-100 rounded-md">
                   <p>Details about symptoms...</p>
                 </div>
-              </Collapse>
+              </Collapsible>
               <Button
                 variant="contained"
                 color="primary"
@@ -375,11 +376,11 @@ const GamifiedHealthDashboard = () => {
               >
                 Prevention
               </Button>
-              <Collapse in={showPrevention}>
+              <Collapsible in={showPrevention}>
                 <div className="p-4 bg-gray-100 rounded-md">
                   <p>Details about prevention...</p>
                 </div>
-              </Collapse>
+              </Collapsible>
               <Button
                 variant="contained"
                 color="primary"
@@ -389,11 +390,11 @@ const GamifiedHealthDashboard = () => {
               >
                 Complications
               </Button>
-              <Collapse in={showComplications}>
+              <Collapsible in={showComplications}>
                 <div className="p-4 bg-gray-100 rounded-md">
                   <p>Details about complications...</p>
                 </div>
-              </Collapse>
+              </Collapsible>
               <div className="mt-4">
                 <Link href="https://www.who.int" target="_blank" rel="noopener noreferrer" className="text-blue-500 underline">
                   Learn more from the World Health Organization (WHO)
