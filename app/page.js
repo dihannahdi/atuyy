@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion'; // Import AnimatePresence from framer-motion
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Collapsible } from "@/components/ui/collapsible";
 import { Progress } from '@/components/ui/progress';
