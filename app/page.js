@@ -9,7 +9,8 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion';
 import { useTranslation } from 'react-i18next';
 import i18n from 'i18next'; // Import i18n instance
-
+import { initReactI18next } from 'react-i18next'; // Import initReactI18next
+import { useState } from 'react'; // Import useState
 
 const GamifiedHealthDashboard = () => {
   const { t, i18n } = useTranslation();
