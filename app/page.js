@@ -403,4 +403,4 @@ const GamifiedHealthDashboard = () => {
   );
 };
 
-export default HealthQuest;
+export default GamifiedHealthDashboard;
