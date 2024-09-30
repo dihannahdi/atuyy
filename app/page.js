@@ -266,6 +266,22 @@ const GamifiedHealthDashboard = () => {
     sleep: 0,
   });
 
+  const shareResults = () => {
+    const shareText = `Check out my health stats! Level: ${userStats.level}, Health: ${userStats.health}, Fitness: ${userStats.fitness}, Nutrition: ${userStats.nutrition}. #HealthApp`;
+    if (navigator.share) {
+      navigator.share({
+        title: 'My Health Stats',
+        text: shareText,
+        url: window.location.href,
+      }).then(() => {
+        console.log('Thanks for sharing!');
+      }).catch(console.error);
+    } else {
+      // Fallback for browsers that do not support the Web Share API
+      alert('Sharing is not supported in this browser.');
+    }
+  };
+
   const [showGoalSetter, setShowGoalSetter] = useState(false);
 
   const updateStats = (stat, value) => {
