@@ -2,8 +2,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Card, CardContent, CardHeader, Button, Collapse, Link } from '@material-ui/core';
+import { Card, CardContent, CardHeader, Collapse, Link } from '@material-ui/core';
 import { Progress } from '@/components/ui/progress';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
