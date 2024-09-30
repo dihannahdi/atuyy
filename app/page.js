@@ -16,7 +16,6 @@ const GamifiedHealthDashboard = () => {
   const [language, setLanguage] = useState('en');
 
   const [userData, setUserData] = useState({
-    name: '',
     gender: '',
     age: '',
     weight: '',
