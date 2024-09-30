@@ -8,6 +8,8 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion';
 import { useTranslation } from 'react-i18next';
+import i18n from 'i18next'; // Import i18n instance
+
 
 const GamifiedHealthDashboard = () => {
   const { t, i18n } = useTranslation();
