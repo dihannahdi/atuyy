@@ -1,45 +1,24 @@
-"use client";
-
-import React, { useState, useEffect } from 'react';
-import { Accordion, AccordionSummary, AccordionDetails } from '@mui/material';
-import { motion, AnimatePresence } from 'framer-motion'; // Import AnimatePresence from framer-motion
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { Collapsible } from "@/components/ui/collapsible";
-import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
-import { Slider } from '@/components/ui/slider';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogAction } from '@/components/ui/alert-dialog';
-import { ExpandMore, ExpandLess } from '@mui/icons-material';
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import Link from '@mui/material/Link'; // Import Link from Material-UI
-import i18n from 'i18next'; // Import i18n instance
-import { initReactI18next, useTranslation } from 'react-i18next'; // Import useTranslation hook
+import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion';
+import { useTranslation } from 'react-i18next';
 
 const GamifiedHealthDashboard = () => {
   const { t, i18n } = useTranslation();
   const [language, setLanguage] = useState('en');
 
-  const [name, setName] = useState('');
-  const [nameError, setNameError] = useState(''); // State for name input error
-  const [showNameInput, setShowNameInput] = useState(true);
-  
   const [userData, setUserData] = useState({
+    name: '',
     gender: '',
     age: '',
     weight: '',
     height: '',
     activityLevel: '',
   });
-
-  const validateName = (name) => {
-    if (name.trim() === '') {
-      return 'Name cannot be empty';
-    }
-    return '';
-  };
 
   const [results, setResults] = useState(null);
   const [errors, setErrors] = useState({});
@@ -51,17 +30,10 @@ const GamifiedHealthDashboard = () => {
     i18n.changeLanguage(lang);
   };
 
-  const handleNameSubmit = () => {
-    if (name.trim() !== '') {
-      setShowNameInput(false);
-    }
-  };
-
-  const handleNameChange = (e) => {
-    const newName = e.target.value;
-    setName(newName);
-    const error = validateName(newName);
-    setNameError(error);
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setUserData(prevData => ({ ...prevData, [name]: value }));
+    validateField(name, value);
   };
 
   const handleSelectChange = (name, value) => {
@@ -72,23 +44,30 @@ const GamifiedHealthDashboard = () => {
   const validateField = (name, value) => {
     let newErrors = { ...errors };
     switch (name) {
+      case 'name':
+        if (value.trim() === '') {
+          newErrors.name = t('nameRequired');
+        } else {
+          delete newErrors.name;
+        }
+        break;
       case 'age':
         if (value <= 0 || value > 120) {
-          newErrors.age = 'Age must be between 1 and 120';
+          newErrors.age = t('ageRange');
         } else {
           delete newErrors.age;
         }
         break;
       case 'weight':
         if (value <= 0 || value > 500) {
-          newErrors.weight = 'Weight must be between 1 and 500 kg';
+          newErrors.weight = t('weightRange');
         } else {
           delete newErrors.weight;
         }
         break;
       case 'height':
         if (value <= 0 || value > 300) {
-          newErrors.height = 'Height must be between 1 and 300 cm';
+          newErrors.height = t('heightRange');
         } else {
           delete newErrors.height;
         }
@@ -261,114 +240,100 @@ const GamifiedHealthDashboard = () => {
           </div>
         </CardHeader>
         <CardContent className="p-6">
-          <AnimatePresence>
-            {showNameInput ? (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <Input 
+                name="name" 
+                type="text" 
+                placeholder={t('enterYourName')} 
+                value={userData.name} 
+                onChange={handleInputChange} 
+                className="col-span-1 md:col-span-2"
+              />
+              <Select onValueChange={(value) => handleSelectChange('gender', value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder={t('selectGender')} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="male">{t('male')}</SelectItem>
+                  <SelectItem value="female">{t('female')}</SelectItem>
+                </SelectContent>
+              </Select>
+              <Input name="age" type="number" placeholder={t('age')} onChange={handleInputChange} />
+              <Input name="weight" type="number" placeholder={t('weightKg')} onChange={handleInputChange} />
+              <Input name="height" type="number" placeholder={t('heightCm')} onChange={handleInputChange} />
+              <Select onValueChange={(value) => handleSelectChange('activityLevel', value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder={t('activityLevel')} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="sedentary">{t('sedentary')}</SelectItem>
+                  <SelectItem value="moderate">{t('moderate')}</SelectItem>
+                  <SelectItem value="active">{t('active')}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {Object.keys(errors).map((key) => (
               <motion.div
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 20 }}
-                transition={{ duration: 0.5 }}
+                key={key}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 20 }}
+                className="text-red-500 mb-2"
               >
-                <h2 className="text-2xl font-semibold mb-4">{t('welcomeMessage')}</h2>
-                <Input
-                  type="text"
-                  placeholder={t('enterYourName')}
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="mb-4"
-                />
-                <Button onClick={handleNameSubmit}>{t('submit')}</Button>
+                {errors[key]}
               </motion.div>
-            ) : (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-              >
-                <h2 className="text-2xl font-semibold mb-4">{t('welcomeUser', { name })}</h2>
-                <div className="grid grid-cols-2 gap-4 mb-4">
-                  <Select onValueChange={(value) => handleSelectChange('gender', value)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder={t('selectGender')} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="male">{t('male')}</SelectItem>
-                      <SelectItem value="female">{t('female')}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Input name="age" type="number" placeholder={t('age')} onChange={handleInputChange} />
-                  <Input name="weight" type="number" placeholder={t('weightKg')} onChange={handleInputChange} />
-                  <Input name="height" type="number" placeholder={t('heightCm')} onChange={handleInputChange} />
-                  <Select onValueChange={(value) => handleSelectChange('activityLevel', value)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder={t('activityLevel')} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="sedentary">{t('sedentary')}</SelectItem>
-                      <SelectItem value="moderate">{t('moderate')}</SelectItem>
-                      <SelectItem value="active">{t('active')}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                {Object.keys(errors).map((key) => (
+            ))}
+            <Button onClick={calculateHealth} className="w-full">{t('calculate')}</Button>
+
+            <AnimatePresence>
+              {results && <ResultsDisplay />}
+            </AnimatePresence>
+
+            <Accordion type="single" collapsible className="mt-8">
+              <AccordionItem value="kidney-failure">
+                <AccordionTrigger>{t('learnAboutKidneyFailure')}</AccordionTrigger>
+                <AccordionContent>
                   <motion.div
-                    key={key}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: 20 }}
-                    className="text-red-500 mb-2"
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3 }}
                   >
-                    {errors[key]}
+                    <p>{t('kidneyFailureDescription')}</p>
+                    <h4 className="font-semibold mt-2">{t('symptoms')}</h4>
+                    <ul className="list-disc pl-5">
+                      <li>{t('highBloodPressure')}</li>
+                      <li>{t('weightLoss')}</li>
+                      <li>{t('edema')}</li>
+                      <li>{t('fatigue')}</li>
+                      <li>{t('nausea')}</li>
+                      <li>{t('urinaryChanges')}</li>
+                      <li>{t('bloodInUrine')}</li>
+                    </ul>
+                    <h4 className="font-semibold mt-2">{t('prevention')}</h4>
+                    <ul className="list-disc pl-5">
+                      <li>{t('manageConditions')}</li>
+                      <li>{t('avoidMedications')}</li>
+                      <li>{t('consumeWater')}</li>
+                      <li>{t('regularCheckups')}</li>
+                    </ul>
+                    <h4 className="font-semibold mt-2">{t('complications')}</h4>
+                    <ul className="list-disc pl-5">
+                      <li>{t('heartDamage')}</li>
+                      <li>{t('anemia')}</li>
+                      <li>{t('boneDamage')}</li>
+                      <li>{t('electrolyteImbalances')}</li>
+                      <li>{t('suddenDeath')}</li>
+                    </ul>
                   </motion.div>
-                ))}
-                <Button onClick={calculateHealth}>{t('calculate')}</Button>
-
-                <AnimatePresence>
-                  {results && <ResultsDisplay />}
-                </AnimatePresence>
-
-                <Accordion type="single" collapsible className="mt-8">
-                  <AccordionItem value="kidney-failure">
-                    <AccordionTrigger>{t('learnAboutKidneyFailure')}</AccordionTrigger>
-                    <AccordionContent>
-                      <motion.div
-                        initial={{ opacity: 0, y: -10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.3 }}
-                      >
-                        <p>{t('kidneyFailureDescription')}</p>
-                        <h4 className="font-semibold mt-2">{t('symptoms')}</h4>
-                        <ul className="list-disc pl-5">
-                          <li>{t('highBloodPressure')}</li>
-                          <li>{t('weightLoss')}</li>
-                          <li>{t('edema')}</li>
-                          <li>{t('fatigue')}</li>
-                          <li>{t('nausea')}</li>
-                          <li>{t('urinaryChanges')}</li>
-                          <li>{t('bloodInUrine')}</li>
-                        </ul>
-                        <h4 className="font-semibold mt-2">{t('prevention')}</h4>
-                        <ul className="list-disc pl-5">
-                          <li>{t('manageConditions')}</li>
-                          <li>{t('avoidMedications')}</li>
-                          <li>{t('consumeWater')}</li>
-                          <li>{t('regularCheckups')}</li>
-                        </ul>
-                        <h4 className="font-semibold mt-2">{t('complications')}</h4>
-                        <ul className="list-disc pl-5">
-                          <li>{t('heartDamage')}</li>
-                          <li>{t('anemia')}</li>
-                          <li>{t('boneDamage')}</li>
-                          <li>{t('electrolyteImbalances')}</li>
-                          <li>{t('suddenDeath')}</li>
-                        </ul>
-                      </motion.div>
-                    </AccordionContent>
-                  </AccordionItem>
-                </Accordion>
-              </motion.div>
-            )}
-          </AnimatePresence>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+            </motion.div>
         </CardContent>
       </Card>
     </div>
@@ -380,10 +345,7 @@ const translations = {
   en: {
     healthQuestDashboard: 'Health Quest Dashboard',
     selectLanguage: 'Select Language',
-    welcomeMessage: 'Welcome to Health Quest!',
     enterYourName: 'Enter your name',
-    submit: 'Submit',
-    welcomeUser: 'Welcome, {{name}}!',
     selectGender: 'Select Gender',
     male: 'Male',
     female: 'Female',
@@ -437,15 +399,16 @@ const translations = {
     bmiLowerThanAverage: 'Your BMI ({{bmi}}) is lower than the world average of {{worldAverage}}. You\'re in better shape than many people globally!',
     bmiHigherThanAverage: 'Your BMI ({{bmi}}) is higher than the world average of {{worldAverage}}. There\'s room for improvement, but remember, BMI isn\'t everything!',
     bmiExactlyAverage: 'Your BMI ({{bmi}}) is exactly the world average. What are the odds?',
-    waterStrategy: 'Based on your weight, you need about {{waterNeed}} liters of water per day. This is equivalent to about {{glassesNeeded}} glasses of water. Try to drink about {{hourlyGlasses}} glasses every hour you\'re awake.'
+    waterStrategy: 'Based on your weight, you need about {{waterNeed}} liters of water per day. This is equivalent to about {{glassesNeeded}} glasses of water. Try to drink about {{hourlyGlasses}} glasses every hour you\'re awake.',
+    nameRequired: 'Name is required',
+    ageRange: 'Age must be between 1 and 120',
+    weightRange: 'Weight must be between 1 and 500 kg',
+    heightRange: 'Height must be between 1 and 300 cm'
   },
   id: {
     healthQuestDashboard: 'Dashboard Pencarian Kesehatan',
     selectLanguage: 'Pilih Bahasa',
-    welcomeMessage: 'Selamat datang di Pencarian Kesehatan!',
     enterYourName: 'Masukkan nama Anda',
-    submit: 'Kirim',
-    welcomeUser: 'Selamat datang, {{name}}!',
     selectGender: 'Pilih Jenis Kelamin',
     male: 'Laki-laki',
     female: 'Perempuan',
@@ -499,7 +462,11 @@ const translations = {
     bmiLowerThanAverage: 'IMT Anda ({{bmi}}) lebih rendah dari rata-rata dunia {{worldAverage}}. Anda dalam kondisi lebih baik dari banyak orang di dunia!',
     bmiHigherThanAverage: 'IMT Anda ({{bmi}}) lebih tinggi dari rata-rata dunia {{worldAverage}}. Masih ada ruang untuk perbaikan, tapi ingat, IMT bukan segalanya!',
     bmiExactlyAverage: 'IMT Anda ({{bmi}}) tepat sama dengan rata-rata dunia. Apa kemungkinannya?',
-    waterStrategy: 'Berdasarkan berat badan Anda, Anda membutuhkan sekitar {{waterNeed}} liter air per hari. Ini setara dengan sekitar {{glassesNeeded}} gelas air. Cobalah untuk minum sekitar {{hourlyGlasses}} gelas setiap jam Anda terjaga.'
+    waterStrategy: 'Berdasarkan berat badan Anda, Anda membutuhkan sekitar {{waterNeed}} liter air per hari. Ini setara dengan sekitar {{glassesNeeded}} gelas air. Cobalah untuk minum sekitar {{hourlyGlasses}} gelas setiap jam Anda terjaga.',
+    nameRequired: 'Nama wajib diisi',
+    ageRange: 'Usia harus antara 1 dan 120 tahun',
+    weightRange: 'Berat harus antara 1 dan 500 kg',
+    heightRange: 'Tinggi harus antara 1 dan 300 cm'
   }
 };
 
@@ -517,3 +484,4 @@ i18n
   });
 
 export default GamifiedHealthDashboard;
+            
