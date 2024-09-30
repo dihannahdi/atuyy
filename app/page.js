@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Card, CardHeader, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, Button, Collapse, Link } from '@material-ui/core';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,6 +10,7 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@
 import { Slider } from '@/components/ui/slider';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogAction } from '@/components/ui/alert-dialog';
+import { ExpandMore, ExpandLess } from '@material-ui/icons';
 import { Alert, AlertDescription } from "@/components/ui/alert"
 
 
@@ -251,6 +252,10 @@ const HealthQuest = () => {
 };
 
 const GamifiedHealthDashboard = () => {
+  const [showSymptoms, setShowSymptoms] = useState(false);
+  const [showPrevention, setShowPrevention] = useState(false);
+  const [showComplications, setShowComplications] = useState(false);
+
   const [userStats, setUserStats] = useState({
     level: 1,
     exp: 0,
@@ -346,73 +351,56 @@ const GamifiedHealthDashboard = () => {
               </ResponsiveContainer>
             </div>
             <div>
-              <h2 className="text-2xl font-semibold mb-4">Improve Your Stats</h2>
-              {['health', 'fitness', 'nutrition'].map((stat) => (
-                <div key={stat} className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-1 capitalize">
-                    {stat}
-                  </label>
-                  <Slider
-                    defaultValue={[userStats[stat]]}
-                    max={100}
-                    step={1}
-                    onValueChange={(value) => updateStats(stat, value[0])}
-                  />
+              <h2 className="text-2xl font-bold mb-4">Learn About Kidney Failure</h2>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={() => setShowSymptoms(!showSymptoms)}
+                endIcon={showSymptoms ? <ExpandLess /> : <ExpandMore />}
+                className="w-full mb-2"
+              >
+                Symptoms
+              </Button>
+              <Collapse in={showSymptoms}>
+                <div className="p-4 bg-gray-100 rounded-md">
+                  <p>Details about symptoms...</p>
                 </div>
-              ))}
+              </Collapse>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={() => setShowPrevention(!showPrevention)}
+                endIcon={showPrevention ? <ExpandLess /> : <ExpandMore />}
+                className="w-full mb-2"
+              >
+                Prevention
+              </Button>
+              <Collapse in={showPrevention}>
+                <div className="p-4 bg-gray-100 rounded-md">
+                  <p>Details about prevention...</p>
+                </div>
+              </Collapse>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={() => setShowComplications(!showComplications)}
+                endIcon={showComplications ? <ExpandLess /> : <ExpandMore />}
+                className="w-full mb-2"
+              >
+                Complications
+              </Button>
+              <Collapse in={showComplications}>
+                <div className="p-4 bg-gray-100 rounded-md">
+                  <p>Details about complications...</p>
+                </div>
+              </Collapse>
+              <div className="mt-4">
+                <Link href="https://www.who.int" target="_blank" rel="noopener noreferrer" className="text-blue-500 underline">
+                  Learn more from the World Health Organization (WHO)
+                </Link>
+              </div>
             </div>
           </div>
-          
-          {showGoalSetter && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="mt-8 p-6 bg-gray-100 rounded-lg"
-            >
-              <h2 className="text-2xl font-semibold mb-4">Set Daily Goals</h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Steps
-                  </label>
-                  <Input
-                    type="number"
-                    value={dailyGoals.steps}
-                    onChange={(e) => setDailyGoal('steps', parseInt(e.target.value))}
-                    min={0}
-                    max={50000}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Water (glasses)
-                  </label>
-                  <Input
-                    type="number"
-                    value={dailyGoals.water}
-                    onChange={(e) => setDailyGoal('water', parseInt(e.target.value))}
-                    min={0}
-                    max={20}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Sleep (hours)
-                  </label>
-                  <Input
-                    type="number"
-                    value={dailyGoals.sleep}
-                    onChange={(e) => setDailyGoal('sleep', parseInt(e.target.value))}
-                    min={0}
-                    max={24}
-                  />
-                </div>
-              </div>
-            </motion.div>
-          )}
-          
-          <HealthQuest />
         </CardContent>
       </Card>
     </div>
