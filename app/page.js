@@ -15,7 +15,7 @@ import { ExpandMore, ExpandLess } from '@mui/icons-material';
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import Link from '@mui/material/Link'; // Import Link from Material-UI
 import i18n from 'i18next'; // Import i18n instance
-import { initReactI18next } from 'react-i18next';
+import { initReactI18next, useTranslation } from 'react-i18next'; // Import useTranslation hook
 
 const GamifiedHealthDashboard = () => {
   const { t, i18n } = useTranslation();
