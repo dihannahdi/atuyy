@@ -23,6 +23,7 @@ const GamifiedHealthDashboard = () => {
   const [language, setLanguage] = useState('en');
 
   const [name, setName] = useState('');
+  const [nameError, setNameError] = useState(''); // State for name input error
   const [showNameInput, setShowNameInput] = useState(true);
   
   const [userData, setUserData] = useState({
@@ -32,6 +33,13 @@ const GamifiedHealthDashboard = () => {
     height: '',
     activityLevel: '',
   });
+
+  const validateName = (name) => {
+    if (name.trim() === '') {
+      return 'Name cannot be empty';
+    }
+    return '';
+  };
 
   const [results, setResults] = useState(null);
   const [errors, setErrors] = useState({});
@@ -49,10 +57,11 @@ const GamifiedHealthDashboard = () => {
     }
   };
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setUserData(prevData => ({ ...prevData, [name]: value }));
-    validateField(name, value);
+  const handleNameChange = (e) => {
+    const newName = e.target.value;
+    setName(newName);
+    const error = validateName(newName);
+    setNameError(error);
   };
 
   const handleSelectChange = (name, value) => {
