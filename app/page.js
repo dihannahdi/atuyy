@@ -1,32 +1,40 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion';
+import { Progress } from '@/components/ui/progress';
+import { AlertCircle, Droplet, Heart } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import i18n from 'i18next'; // Import i18n instance
-import { initReactI18next } from 'react-i18next'; // Import initReactI18next
+import i18n from 'i18next';
+import { initReactI18next } from 'react-i18next';
 
-const GamifiedHealthDashboard = () => {
+const AnimatedBackground = () => (
+  <div className="fixed inset-0 z-0">
+    <div className="absolute inset-0 bg-gradient-to-br from-blue-400 to-purple-500 animate-gradient-x"></div>
+  </div>
+);
+
+const HealthQuestDashboard = () => {
   const { t, i18n } = useTranslation();
   const [language, setLanguage] = useState('en');
-
   const [userData, setUserData] = useState({
+    name: '',
     gender: '',
     age: '',
     weight: '',
     height: '',
     activityLevel: '',
   });
-
   const [results, setResults] = useState(null);
   const [errors, setErrors] = useState({});
-  const [funFact, setFunFact] = useState('');
+  const [healthTip, setHealthTip] = useState('');
   const [waterStrategy, setWaterStrategy] = useState('');
+  const [questProgress, setQuestProgress] = useState(0);
 
   const handleLanguageChange = (lang) => {
     setLanguage(lang);
@@ -37,11 +45,13 @@ const GamifiedHealthDashboard = () => {
     const { name, value } = e.target;
     setUserData(prevData => ({ ...prevData, [name]: value }));
     validateField(name, value);
+    updateQuestProgress();
   };
 
   const handleSelectChange = (name, value) => {
     setUserData(prevData => ({ ...prevData, [name]: value }));
     validateField(name, value);
+    updateQuestProgress();
   };
 
   const validateField = (name, value) => {
@@ -81,20 +91,22 @@ const GamifiedHealthDashboard = () => {
     setErrors(newErrors);
   };
 
+  const updateQuestProgress = () => {
+    const totalFields = Object.keys(userData).length;
+    const filledFields = Object.values(userData).filter(value => value !== '').length;
+    setQuestProgress((filledFields / totalFields) * 100);
+  };
+
   const calculateHealth = () => {
     if (Object.keys(errors).length > 0 || Object.values(userData).some(value => value === '')) {
       setResults(null);
-      setFunFact(t('fillFieldsCorrectly'));
+      setHealthTip(t('fillFieldsCorrectly'));
       return;
     }
 
     const { gender, age, weight, height, activityLevel } = userData;
     const heightInMeters = height / 100;
-
-    // Calculate BMI
     const bmi = weight / (heightInMeters * heightInMeters);
-
-    // Calculate BMR
     let bmr;
     if (gender === 'male') {
       bmr = 66.5 + (13.7 * weight) + (5 * height) - (6.8 * age);
@@ -102,28 +114,18 @@ const GamifiedHealthDashboard = () => {
       bmr = 655 + (9.6 * weight) + (1.8 * height) - (4.7 * age);
     }
 
-    // Calculate daily calorie needs
-    const activityMultipliers = {
-      sedentary: 1.2,
-      moderate: 1.3,
-      active: 1.4,
-    };
+    const activityMultipliers = { sedentary: 1.2, moderate: 1.3, active: 1.4 };
     const dailyCalories = bmr * activityMultipliers[activityLevel];
-
-    // Calculate nutrient needs (simplified approximations)
     const proteinNeed = weight * 0.8;
     const fatNeed = dailyCalories * 0.3 / 9;
     const carbNeed = (dailyCalories - (proteinNeed * 4 + fatNeed * 9)) / 4;
-    const sodiumNeed = 2300;
     const waterNeed = weight * 0.033;
 
-    // Determine BMI category
     let bmiCategory;
-    if (bmi < 17.0) bmiCategory = t('severeUnderweight');
-    else if (bmi < 18.5) bmiCategory = t('mildUnderweight');
-    else if (bmi <= 25.0) bmiCategory = t('normal');
-    else if (bmi <= 27.0) bmiCategory = t('mildOverweight');
-    else bmiCategory = t('severeOverweight');
+    if (bmi < 18.5) bmiCategory = t('underweight');
+    else if (bmi < 25) bmiCategory = t('normal');
+    else if (bmi < 30) bmiCategory = t('overweight');
+    else bmiCategory = t('obese');
 
     const newResults = {
       bmi: bmi.toFixed(1),
@@ -133,28 +135,27 @@ const GamifiedHealthDashboard = () => {
       proteinNeed: Math.round(proteinNeed),
       fatNeed: Math.round(fatNeed),
       carbNeed: Math.round(carbNeed),
-      sodiumNeed,
       waterNeed: waterNeed.toFixed(1),
     };
 
     setResults(newResults);
-
-    // Generate fun fact and water strategy
-    const worldAverageBMI = 26.6;
-    if (bmi < worldAverageBMI) {
-      setFunFact(t('bmiLowerThanAverage', { bmi: bmi.toFixed(1), worldAverage: worldAverageBMI }));
-    } else if (bmi > worldAverageBMI) {
-      setFunFact(t('bmiHigherThanAverage', { bmi: bmi.toFixed(1), worldAverage: worldAverageBMI }));
-    } else {
-      setFunFact(t('bmiExactlyAverage', { bmi: bmi.toFixed(1) }));
-    }
-
-    const waterStrategyText = t('waterStrategy', { 
+    setHealthTip(getRandomHealthTip());
+    setWaterStrategy(t('waterStrategy', { 
       waterNeed: waterNeed.toFixed(1),
       glassesNeeded: Math.ceil(waterNeed / 0.25),
       hourlyGlasses: Math.ceil((waterNeed / 0.25) / 8)
-    });
-    setWaterStrategy(waterStrategyText);
+    }));
+  };
+
+  const getRandomHealthTip = () => {
+    const tips = [
+      t('healthTip1'),
+      t('healthTip2'),
+      t('healthTip3'),
+      t('healthTip4'),
+      t('healthTip5'),
+    ];
+    return tips[Math.floor(Math.random() * tips.length)];
   };
 
   const ResultsDisplay = () => (
@@ -165,181 +166,177 @@ const GamifiedHealthDashboard = () => {
       transition={{ duration: 0.5 }}
     >
       <h3 className="text-2xl font-semibold mb-4">{t('yourResults')}</h3>
-      <motion.p 
-        initial={{ scale: 1 }}
-        animate={{ scale: [1, 1.1, 1] }}
-        transition={{ duration: 0.5 }}
-        className="text-3xl font-bold mb-2"
-      >
-        {t('bmi')}: {results.bmi} ({results.bmiCategory})
-      </motion.p>
-      <motion.p 
-        initial={{ x: -20, opacity: 0 }}
-        animate={{ x: 0, opacity: 1 }}
-        transition={{ delay: 0.2 }}
-      >
-        {t('bmr')}: {results.bmr} kcal
-      </motion.p>
-      <motion.p 
-        initial={{ x: -20, opacity: 0 }}
-        animate={{ x: 0, opacity: 1 }}
-        transition={{ delay: 0.4 }}
-      >
-        {t('dailyCalorieNeeds')}: {results.dailyCalories} kcal
-      </motion.p>
-      <motion.div 
-        initial={{ y: 20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.6 }}
-      >
-        <h4 className="font-semibold mt-4 mb-2">{t('dailyNutrientNeeds')}</h4>
-        <ul>
-          <li>{t('protein')}: {results.proteinNeed}g</li>
-          <li>{t('fat')}: {results.fatNeed}g</li>
-          <li>{t('carbohydrates')}: {results.carbNeed}g</li>
-          <li>{t('sodium')}: {results.sodiumNeed}mg</li>
-          <li>{t('water')}: {results.waterNeed} {t('liters')}</li>
-        </ul>
-      </motion.div>
-      {funFact && (
-        <motion.div 
-          initial={{ scale: 0.9, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ delay: 0.8 }}
-          className="mt-4 p-4 bg-blue-100 rounded-lg"
-        >
-          <p>{funFact}</p>
-        </motion.div>
-      )}
-      {waterStrategy && (
-        <motion.div 
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 1 }}
-          className="mt-4 p-4 bg-green-100 rounded-lg"
-        >
-          <h4 className="font-semibold mb-2">{t('waterConsumptionStrategy')}</h4>
-          <p>{waterStrategy}</p>
-        </motion.div>
-      )}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Card className="p-4">
+          <CardHeader className="p-0">
+            <h4 className="text-lg font-semibold">{t('bmi')}</h4>
+          </CardHeader>
+          <CardContent className="p-0 mt-2">
+            <p className="text-3xl font-bold">{results.bmi}</p>
+            <p className="text-sm text-gray-600">{results.bmiCategory}</p>
+          </CardContent>
+        </Card>
+        <Card className="p-4">
+          <CardHeader className="p-0">
+            <h4 className="text-lg font-semibold">{t('dailyCalorieNeeds')}</h4>
+          </CardHeader>
+          <CardContent className="p-0 mt-2">
+            <p className="text-3xl font-bold">{results.dailyCalories}</p>
+            <p className="text-sm text-gray-600">{t('calories')}</p>
+          </CardContent>
+        </Card>
+      </div>
+      <Card className="mt-4 p-4">
+        <CardHeader className="p-0">
+          <h4 className="text-lg font-semibold">{t('dailyNutrientNeeds')}</h4>
+        </CardHeader>
+        <CardContent className="p-0 mt-2">
+          <div className="grid grid-cols-3 gap-2">
+            <div>
+              <p className="text-sm text-gray-600">{t('protein')}</p>
+              <p className="text-lg font-semibold">{results.proteinNeed}g</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-600">{t('fat')}</p>
+              <p className="text-lg font-semibold">{results.fatNeed}g</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-600">{t('carbohydrates')}</p>
+              <p className="text-lg font-semibold">{results.carbNeed}g</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+      <Card className="mt-4 p-4 bg-blue-50">
+        <CardHeader className="p-0">
+          <h4 className="text-lg font-semibold flex items-center">
+            <Droplet className="mr-2" /> {t('waterNeeds')}
+          </h4>
+        </CardHeader>
+        <CardContent className="p-0 mt-2">
+          <p className="text-3xl font-bold">{results.waterNeed} {t('liters')}</p>
+          <p className="text-sm mt-2">{waterStrategy}</p>
+        </CardContent>
+      </Card>
+      <Card className="mt-4 p-4 bg-green-50">
+        <CardHeader className="p-0">
+          <h4 className="text-lg font-semibold flex items-center">
+            <Heart className="mr-2" /> {t('healthTip')}
+          </h4>
+        </CardHeader>
+        <CardContent className="p-0 mt-2">
+          <p>{healthTip}</p>
+        </CardContent>
+      </Card>
     </motion.div>
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-400 to-indigo-600 p-8">
-      <Card className="max-w-4xl mx-auto bg-white shadow-xl rounded-xl overflow-hidden">
-        <CardHeader className="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-6">
-          <div className="flex justify-between items-center">
-            <h1 className="text-3xl font-bold">{t('healthQuestDashboard')}</h1>
-            <Select onValueChange={handleLanguageChange} value={language}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder={t('selectLanguage')} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="en">English</SelectItem>
-                <SelectItem value="id">Bahasa Indonesia</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </CardHeader>
-        <CardContent className="p-6">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-              <Input 
-                name="name" 
-                type="text" 
-                placeholder={t('enterYourName')} 
-                value={userData.name} 
-                onChange={handleInputChange} 
-                className="col-span-1 md:col-span-2"
-              />
-              <Select onValueChange={(value) => handleSelectChange('gender', value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder={t('selectGender')} />
+    <div className="relative min-h-screen overflow-hidden">
+      <AnimatedBackground />
+      <div className="relative z-10 p-8">
+        <Card className="max-w-4xl mx-auto bg-white shadow-xl rounded-xl overflow-hidden">
+          <CardHeader className="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-6">
+            <div className="flex justify-between items-center">
+              <h1 className="text-3xl font-bold">{t('healthQuestDashboard')}</h1>
+              <Select onValueChange={handleLanguageChange} value={language}>
+                <SelectTrigger className="w-[180px] bg-white text-black">
+                  <SelectValue placeholder={t('selectLanguage')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="male">{t('male')}</SelectItem>
-                  <SelectItem value="female">{t('female')}</SelectItem>
-                </SelectContent>
-              </Select>
-              <Input name="age" type="number" placeholder={t('age')} onChange={handleInputChange} />
-              <Input name="weight" type="number" placeholder={t('weightKg')} onChange={handleInputChange} />
-              <Input name="height" type="number" placeholder={t('heightCm')} onChange={handleInputChange} />
-              <Select onValueChange={(value) => handleSelectChange('activityLevel', value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder={t('activityLevel')} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="sedentary">{t('sedentary')}</SelectItem>
-                  <SelectItem value="moderate">{t('moderate')}</SelectItem>
-                  <SelectItem value="active">{t('active')}</SelectItem>
+                  <SelectItem value="en">English</SelectItem>
+                  <SelectItem value="id">Bahasa Indonesia</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-            {Object.keys(errors).map((key) => (
-              <motion.div
-                key={key}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 20 }}
-                className="text-red-500 mb-2"
-              >
-                {errors[key]}
+          </CardHeader>
+          <CardContent className="p-6">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              <h2 className="text-2xl font-semibold mb-4">{t('startYourQuest')}</h2>
+              <Progress value={questProgress} className="mb-4" />
+              <p className="text-sm text-gray-600 mb-4">{t('questProgress', { progress: Math.round(questProgress) })}</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <Input 
+                  name="name" 
+                  type="text" 
+                  placeholder={t('enterYourName')} 
+                  value={userData.name} 
+                  onChange={handleInputChange} 
+                  className="col-span-1 md:col-span-2"
+                />
+                <Select onValueChange={(value) => handleSelectChange('gender', value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder={t('selectGender')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="male">{t('male')}</SelectItem>
+                    <SelectItem value="female">{t('female')}</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Input name="age" type="number" placeholder={t('age')} onChange={handleInputChange} />
+                <Input name="weight" type="number" placeholder={t('weightKg')} onChange={handleInputChange} />
+                <Input name="height" type="number" placeholder={t('heightCm')} onChange={handleInputChange} />
+                <Select onValueChange={(value) => handleSelectChange('activityLevel', value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder={t('activityLevel')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="sedentary">{t('sedentary')}</SelectItem>
+                    <SelectItem value="moderate">{t('moderate')}</SelectItem>
+                    <SelectItem value="active">{t('active')}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              {Object.keys(errors).map((key) => (
+                <motion.div
+                  key={key}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 20 }}
+                  className="flex items-center text-red-500 mb-2"
+                >
+                  <AlertCircle className="mr-2" />
+                  {errors[key]}
+                </motion.div>
+              ))}
+              <Button onClick={calculateHealth} className="w-full">{t('startAdventure')}</Button>
+
+              <AnimatePresence>
+                {results && <ResultsDisplay />}
+              </AnimatePresence>
+
+              <Accordion type="single" collapsible className="mt-8">
+                <AccordionItem value="kidney-health">
+                  <AccordionTrigger>{t('learnAboutKidneyHealth')}</AccordionTrigger>
+                  <AccordionContent>
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <p>{t('kidneyHealthDescription')}</p>
+                      <h4 className="font-semibold mt-2">{t('kidneyHealthTips')}</h4>
+                      <ul className="list-disc pl-5">
+                        <li>{t('stayHydrated')}</li>
+                        <li>{t('eatHealthy')}</li>
+                        <li>{t('exerciseRegularly')}</li>
+                        <li>{t('avoidSmoking')}</li>
+                        <li>{t('limitAlcohol')}</li>
+                        <li>{t('regularCheckups')}</li>
+                      </ul>
+                    </motion.div>
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
               </motion.div>
-            ))}
-            <Button onClick={calculateHealth} className="w-full">{t('calculate')}</Button>
-
-            <AnimatePresence>
-              {results && <ResultsDisplay />}
-            </AnimatePresence>
-
-            <Accordion type="single" collapsible className="mt-8">
-              <AccordionItem value="kidney-failure">
-                <AccordionTrigger>{t('learnAboutKidneyFailure')}</AccordionTrigger>
-                <AccordionContent>
-                  <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    <p>{t('kidneyFailureDescription')}</p>
-                    <h4 className="font-semibold mt-2">{t('symptoms')}</h4>
-                    <ul className="list-disc pl-5">
-                      <li>{t('highBloodPressure')}</li>
-                      <li>{t('weightLoss')}</li>
-                      <li>{t('edema')}</li>
-                      <li>{t('fatigue')}</li>
-                      <li>{t('nausea')}</li>
-                      <li>{t('urinaryChanges')}</li>
-                      <li>{t('bloodInUrine')}</li>
-                    </ul>
-                    <h4 className="font-semibold mt-2">{t('prevention')}</h4>
-                    <ul className="list-disc pl-5">
-                      <li>{t('manageConditions')}</li>
-                      <li>{t('avoidMedications')}</li>
-                      <li>{t('consumeWater')}</li>
-                      <li>{t('regularCheckups')}</li>
-                    </ul>
-                    <h4 className="font-semibold mt-2">{t('complications')}</h4>
-                    <ul className="list-disc pl-5">
-                      <li>{t('heartDamage')}</li>
-                      <li>{t('anemia')}</li>
-                      <li>{t('boneDamage')}</li>
-                      <li>{t('electrolyteImbalances')}</li>
-                      <li>{t('suddenDeath')}</li>
-                    </ul>
-                  </motion.div>
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
-            </motion.div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
     </div>
+  </div>
   );
 };
 
