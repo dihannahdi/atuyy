@@ -256,7 +256,7 @@ const HealthQuestDashboard = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
             >
-              <h2 className="text-2xl font-semibold mb-4">{t(startYourQuest)}</h2>
+              <h2 className="text-2xl font-semibold mb-4">{t('startYourQuest')}</h2>
               <Progress value={questProgress} className="mb-4" />
               <p className="text-sm text-gray-600 mb-4">{t('questProgress', { progress: Math.round(questProgress) })}</p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
