@@ -336,6 +336,9 @@ const HealthQuestDashboard = () => {
           </CardContent>
         </Card>
     </div>
+    <footer className="bg-gray-800 text-white text-center py-4 mt-8">
+      © 2023 Your Company Name. All rights reserved.
+    </footer>
   </div>
   );
 };
