@@ -483,5 +483,4 @@ i18n
     interpolation: { escapeValue: false }
   });
 
-export default GamifiedHealthDashboard;
-            
+  export default HealthQuestDashboard;            
