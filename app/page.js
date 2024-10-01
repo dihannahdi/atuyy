@@ -346,7 +346,7 @@ const GamifiedHealthDashboard = () => {
 // Translations
 const translations = {
   en: {
-    healthQuestDashboard: 'Health Quest Dashboard',
+    healthQuestDashboard: 'Know Your Kidney!',
     selectLanguage: 'Select Language',
     enterYourName: 'Enter your name',
     selectGender: 'Select Gender',
@@ -409,7 +409,7 @@ const translations = {
     heightRange: 'Height must be between 1 and 300 cm'
   },
   id: {
-    healthQuestDashboard: 'Dashboard Pencarian Kesehatan',
+    healthQuestDashboard: 'Sadar Ginjal Yuk!',
     selectLanguage: 'Pilih Bahasa',
     enterYourName: 'Masukkan nama Anda',
     selectGender: 'Pilih Jenis Kelamin',
