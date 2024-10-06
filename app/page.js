@@ -8,14 +8,14 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion';
 import { Progress } from '@/components/ui/progress';
-import { AlertCircle, Droplet, Heart } from 'lucide-react';
+import { AlertCircle, Droplet, Heart, Activity, Sun, Moon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import i18n from 'i18next';
-import { initReactI18next } from 'react-i18next';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 const AnimatedBackground = () => (
   <div className="fixed inset-0 z-0">
     <div className="absolute inset-0 bg-gradient-to-br from-blue-400 to-purple-500 animate-gradient-x"></div>
+    <div className="absolute inset-0 bg-[url('/path/to/pattern.svg')] opacity-10"></div>
   </div>
 );
 
@@ -35,7 +35,7 @@ const HealthQuestDashboard = () => {
   const [healthTip, setHealthTip] = useState('');
   const [waterStrategy, setWaterStrategy] = useState('');
   const [questProgress, setQuestProgress] = useState(0);
-
+  const [theme, setTheme] = useState('light');
   const handleLanguageChange = (lang) => {
     setLanguage(lang);
     i18n.changeLanguage(lang);
@@ -158,108 +158,145 @@ const HealthQuestDashboard = () => {
     return tips[Math.floor(Math.random() * tips.length)];
   };
 
+  const toggleTheme = () => {
+    setTheme(prevTheme => prevTheme === 'light' ? 'dark' : 'light');
+  };
+
   const ResultsDisplay = () => (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
       transition={{ duration: 0.5 }}
+      className="space-y-6"
     >
-      <h3 className="text-2xl font-semibold mb-4">{t('yourResults')}</h3>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Card className="p-4">
+      <h3 className="text-3xl font-bold mb-6 text-center">{t('yourResults')}</h3>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Card className="p-6 bg-gradient-to-br from-blue-500 to-purple-600 text-white">
           <CardHeader className="p-0">
-            <h4 className="text-lg font-semibold">{t('bmi')}</h4>
+            <h4 className="text-xl font-semibold">{t('bmi')}</h4>
           </CardHeader>
-          <CardContent className="p-0 mt-2">
-            <p className="text-3xl font-bold">{results.bmi}</p>
-            <p className="text-sm text-gray-600">{results.bmiCategory}</p>
+          <CardContent className="p-0 mt-4">
+            <p className="text-4xl font-bold">{results.bmi}</p>
+            <p className="text-lg mt-2">{results.bmiCategory}</p>
           </CardContent>
         </Card>
-        <Card className="p-4">
+        <Card className="p-6 bg-gradient-to-br from-green-500 to-teal-600 text-white">
           <CardHeader className="p-0">
-            <h4 className="text-lg font-semibold">{t('dailyCalorieNeeds')}</h4>
+            <h4 className="text-xl font-semibold">{t('dailyCalorieNeeds')}</h4>
           </CardHeader>
-          <CardContent className="p-0 mt-2">
-            <p className="text-3xl font-bold">{results.dailyCalories}</p>
-            <p className="text-sm text-gray-600">{t('calories')}</p>
+          <CardContent className="p-0 mt-4">
+            <p className="text-4xl font-bold">{results.dailyCalories}</p>
+            <p className="text-lg mt-2">{t('calories')}</p>
           </CardContent>
         </Card>
       </div>
-      <Card className="mt-4 p-4">
+      <Card className="mt-6 p-6 bg-white dark:bg-gray-800">
         <CardHeader className="p-0">
-          <h4 className="text-lg font-semibold">{t('dailyNutrientNeeds')}</h4>
+          <h4 className="text-2xl font-semibold">{t('dailyNutrientNeeds')}</h4>
         </CardHeader>
-        <CardContent className="p-0 mt-2">
-          <div className="grid grid-cols-3 gap-2">
-            <div>
-              <p className="text-sm text-gray-600">{t('protein')}</p>
-              <p className="text-lg font-semibold">{results.proteinNeed}g</p>
+        <CardContent className="p-0 mt-4">
+          <div className="grid grid-cols-3 gap-4">
+            <div className="text-center">
+              <p className="text-lg text-gray-600 dark:text-gray-300">{t('protein')}</p>
+              <p className="text-2xl font-semibold mt-2">{results.proteinNeed}g</p>
             </div>
-            <div>
-              <p className="text-sm text-gray-600">{t('fat')}</p>
-              <p className="text-lg font-semibold">{results.fatNeed}g</p>
+            <div className="text-center">
+              <p className="text-lg text-gray-600 dark:text-gray-300">{t('fat')}</p>
+              <p className="text-2xl font-semibold mt-2">{results.fatNeed}g</p>
             </div>
-            <div>
-              <p className="text-sm text-gray-600">{t('carbohydrates')}</p>
-              <p className="text-lg font-semibold">{results.carbNeed}g</p>
+            <div className="text-center">
+              <p className="text-lg text-gray-600 dark:text-gray-300">{t('carbohydrates')}</p>
+              <p className="text-2xl font-semibold mt-2">{results.carbNeed}g</p>
             </div>
           </div>
         </CardContent>
       </Card>
-      <Card className="mt-4 p-4 bg-blue-50">
+      <Card className="mt-6 p-6 bg-blue-50 dark:bg-blue-900">
         <CardHeader className="p-0">
-          <h4 className="text-lg font-semibold flex items-center">
-            <Droplet className="mr-2" /> {t('waterNeeds')}
+          <h4 className="text-2xl font-semibold flex items-center">
+            <Droplet className="mr-3" /> {t('waterNeeds')}
           </h4>
         </CardHeader>
-        <CardContent className="p-0 mt-2">
-          <p className="text-3xl font-bold">{results.waterNeed} {t('liters')}</p>
-          <p className="text-sm mt-2">{waterStrategy}</p>
+        <CardContent className="p-0 mt-4">
+          <p className="text-4xl font-bold">{results.waterNeed} {t('liters')}</p>
+          <p className="text-lg mt-4">{waterStrategy}</p>
         </CardContent>
       </Card>
-      <Card className="mt-4 p-4 bg-green-50">
+      <Card className="mt-6 p-6 bg-green-50 dark:bg-green-900">
         <CardHeader className="p-0">
-          <h4 className="text-lg font-semibold flex items-center">
-            <Heart className="mr-2" /> {t('healthTip')}
+          <h4 className="text-2xl font-semibold flex items-center">
+            <Heart className="mr-3" /> {t('healthTip')}
           </h4>
         </CardHeader>
-        <CardContent className="p-0 mt-2">
-          <p>{healthTip}</p>
+        <CardContent className="p-0 mt-4">
+          <p className="text-lg">{healthTip}</p>
+        </CardContent>
+      </Card>
+      <Card className="mt-6 p-6">
+        <CardHeader className="p-0">
+          <h4 className="text-2xl font-semibold">{t('weeklyActivityGoal')}</h4>
+        </CardHeader>
+        <CardContent className="p-0 mt-4">
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={weeklyActivityData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="day" />
+              <YAxis />
+              <Tooltip />
+              <Line type="monotone" dataKey="minutes" stroke="#8884d8" activeDot={{ r: 8 }} />
+            </LineChart>
+          </ResponsiveContainer>
         </CardContent>
       </Card>
     </motion.div>
   );
 
+  const weeklyActivityData = [
+    { day: 'Mon', minutes: 30 },
+    { day: 'Tue', minutes: 45 },
+    { day: 'Wed', minutes: 60 },
+    { day: 'Thu', minutes: 30 },
+    { day: 'Fri', minutes: 45 },
+    { day: 'Sat', minutes: 90 },
+    { day: 'Sun', minutes: 60 },
+  ];
+
   return (
-    <div className="relative min-h-screen overflow-hidden">
+    <div className={`relative min-h-screen overflow-hidden ${theme === 'dark' ? 'dark' : ''}`}>
       <AnimatedBackground />
       <div className="relative z-10 p-8">
-        <Card className="max-w-4xl mx-auto bg-white shadow-xl rounded-xl overflow-hidden">
-          <CardHeader className="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-6">
+        <Card className="max-w-4xl mx-auto bg-white dark:bg-gray-800 shadow-2xl rounded-xl overflow-hidden">
+          <CardHeader className="bg-gradient-to-r from-blue-600 to-purple-700 text-white p-8">
             <div className="flex justify-between items-center">
-              <h1 className="text-3xl font-bold">{t('healthQuestDashboard')}</h1>
-              <Select onValueChange={handleLanguageChange} value={language}>
-                <SelectTrigger className="w-[180px] bg-white text-black">
-                  <SelectValue placeholder={t('selectLanguage')} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="en">English</SelectItem>
-                  <SelectItem value="id">Bahasa Indonesia</SelectItem>
-                </SelectContent>
-              </Select>
+              <h1 className="text-4xl font-bold">{t('healthQuestDashboard')}</h1>
+              <div className="flex items-center space-x-4">
+                <Select onValueChange={handleLanguageChange} value={language}>
+                  <SelectTrigger className="w-[180px] bg-white text-black">
+                    <SelectValue placeholder={t('selectLanguage')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="en">English</SelectItem>
+                    <SelectItem value="id">Bahasa Indonesia</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button onClick={toggleTheme} variant="outline" size="icon">
+                  {theme === 'light' ? <Moon className="h-[1.2rem] w-[1.2rem]" /> : <Sun className="h-[1.2rem] w-[1.2rem]" />}
+                </Button>
+              </div>
             </div>
           </CardHeader>
-          <CardContent className="p-6">
+          <CardContent className="p-8">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
+              className="space-y-6"
             >
-              <h2 className="text-2xl font-semibold mb-4">{t('startYourQuest')}</h2>
-              <Progress value={questProgress} className="mb-4" />
-              <p className="text-sm text-gray-600 mb-4">{t('questProgress', { progress: Math.round(questProgress) })}</p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <h2 className="text-3xl font-semibold mb-6">{t('startYourQuest')}</h2>
+              <Progress value={questProgress} className="mb-4 h-2" />
+              <p className="text-sm text-gray-600 dark:text-gray-300 mb-6">{t('questProgress', { progress: Math.round(questProgress) })}</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <Input 
                   name="name" 
                   type="text" 
@@ -303,7 +340,9 @@ const HealthQuestDashboard = () => {
                   {errors[key]}
                 </motion.div>
               ))}
-              <Button onClick={calculateHealth} className="w-full">{t('startAdventure')}</Button>
+              <Button onClick={calculateHealth} className="w-full text-lg py-6">
+                {t('startAdventure')}
+              </Button>
 
               <AnimatePresence>
                 {results && <ResultsDisplay />}
@@ -311,16 +350,17 @@ const HealthQuestDashboard = () => {
 
               <Accordion type="single" collapsible className="mt-8">
                 <AccordionItem value="kidney-health">
-                  <AccordionTrigger>{t('learnAboutKidneyHealth')}</AccordionTrigger>
+                  <AccordionTrigger className="text-xl">{t('learnAboutKidneyHealth')}</AccordionTrigger>
                   <AccordionContent>
                     <motion.div
                       initial={{ opacity: 0, y: -10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.3 }}
+                      className="space-y-4"
                     >
-                      <p>{t('kidneyHealthDescription')}</p>
-                      <h4 className="font-semibold mt-2">{t('kidneyHealthTips')}</h4>
-                      <ul className="list-disc pl-5">
+                      <p className="text-lg">{t('kidneyHealthDescription')}</p>
+                      <h4 className="font-semibold text-xl mt-4">{t('kidneyHealthTips')}</h4>
+                      <ul className="list-disc pl-5 space-y-2">
                         <li>{t('stayHydrated')}</li>
                         <li>{t('eatHealthy')}</li>
                         <li>{t('exerciseRegularly')}</li>
@@ -332,14 +372,15 @@ const HealthQuestDashboard = () => {
                   </AccordionContent>
                 </AccordionItem>
               </Accordion>
-              </motion.div>
+            </motion.div>
           </CardContent>
         </Card>
+      </div>
+      <footer className="bg-gray-800 text-white text-center py-6 mt-12">
+        <p>© 2023 Health Quest Dashboard. All rights reserved.</p>
+        <p className="mt-2">Designed with ❤️ for your well-being</p>
+      </footer>
     </div>
-    <footer className="bg-gray-800 text-white text-center py-4 mt-8">
-      © 2023 Your Company Name. All rights reserved.
-    </footer>
-  </div>
   );
 };
 
