@@ -1,18 +1,26 @@
 "use client";
-
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
-import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion';
 import { Progress } from '@/components/ui/progress';
-import { AlertCircle, Droplet, Heart, Activity, Sun, Moon, ChevronDown, Trophy } from 'lucide-react';
+import { AlertCircle, Droplet, Heart, Sun, Moon, ChevronDown, Trophy } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+
+const weeklyActivityData = [
+  { day: 'Monday', minutes: 30 },
+  { day: 'Tuesday', minutes: 45 },
+  { day: 'Wednesday', minutes: 60 },
+  { day: 'Thursday', minutes: 50 },
+  { day: 'Friday', minutes: 40 },
+  { day: 'Saturday', minutes: 70 },
+  { day: 'Sunday', minutes: 30 },
+];
 
 const AnimatedBackground = () => (
   <div className="fixed inset-0 z-0">
@@ -22,7 +30,7 @@ const AnimatedBackground = () => (
 );
 
 const HealthQuestDashboard = () => {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const [language, setLanguage] = useState('en');
   const [userData, setUserData] = useState({
     name: '',
@@ -35,7 +43,6 @@ const HealthQuestDashboard = () => {
   const [results, setResults] = useState(null);
   const [errors, setErrors] = useState({});
   const [healthTip, setHealthTip] = useState('');
-  const [waterStrategy, setWaterStrategy] = useState('');
   const [questProgress, setQuestProgress] = useState(0);
   const [theme, setTheme] = useState('light');
   const [showConfetti, setShowConfetti] = useState(false);
@@ -47,13 +54,13 @@ const HealthQuestDashboard = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setUserData(prevData => ({ ...prevData, [name]: value }));
+    setUserData((prevData) => ({ ...prevData, [name]: value }));
     validateField(name, value);
     updateQuestProgress();
   };
 
   const handleSelectChange = (name, value) => {
-    setUserData(prevData => ({ ...prevData, [name]: value }));
+    setUserData((prevData) => ({ ...prevData, [name]: value }));
     validateField(name, value);
     updateQuestProgress();
   };
@@ -97,12 +104,12 @@ const HealthQuestDashboard = () => {
 
   const updateQuestProgress = () => {
     const totalFields = Object.keys(userData).length;
-    const filledFields = Object.values(userData).filter(value => value !== '').length;
+    const filledFields = Object.values(userData).filter((value) => value !== '').length;
     setQuestProgress((filledFields / totalFields) * 100);
   };
 
   const calculateHealth = () => {
-    if (Object.keys(errors).length > 0 || Object.values(userData).some(value => value === '')) {
+    if (Object.keys(errors).length > 0 || Object.values(userData).some((value) => value === '')) {
       setResults(null);
       setHealthTip(t('fillFieldsCorrectly'));
       return;
@@ -113,15 +120,15 @@ const HealthQuestDashboard = () => {
     const bmi = weight / (heightInMeters * heightInMeters);
     let bmr;
     if (gender === 'male') {
-      bmr = 66.5 + (13.7 * weight) + (5 * height) - (6.8 * age);
+      bmr = 66.5 + 13.7 * weight + 5 * height - 6.8 * age;
     } else {
-      bmr = 655 + (9.6 * weight) + (1.8 * height) - (4.7 * age);
+      bmr = 655 + 9.6 * weight + 1.8 * height - 4.7 * age;
     }
 
     const activityMultipliers = { sedentary: 1.2, moderate: 1.3, active: 1.4 };
     const dailyCalories = bmr * activityMultipliers[activityLevel];
     const proteinNeed = weight * 0.8;
-    const fatNeed = dailyCalories * 0.3 / 9;
+    const fatNeed = (dailyCalories * 0.3) / 9;
     const carbNeed = (dailyCalories - (proteinNeed * 4 + fatNeed * 9)) / 4;
     const waterNeed = weight * 0.033;
 
@@ -144,11 +151,6 @@ const HealthQuestDashboard = () => {
 
     setResults(newResults);
     setHealthTip(getRandomHealthTip());
-    setWaterStrategy(t('waterStrategy', { 
-      waterNeed: waterNeed.toFixed(1),
-      glassesNeeded: Math.ceil(waterNeed / 0.25),
-      hourlyGlasses: Math.ceil((waterNeed / 0.25) / 8)
-    }));
     setShowConfetti(true);
     setTimeout(() => setShowConfetti(false), 3000);
   };
@@ -165,7 +167,7 @@ const HealthQuestDashboard = () => {
   };
 
   const toggleTheme = () => {
-    setTheme(prevTheme => prevTheme === 'light' ? 'dark' : 'light');
+    setTheme((prevTheme) => (prevTheme === 'light' ? 'dark' : 'light'));
   };
 
   const ResultsDisplay = () => (
@@ -287,7 +289,9 @@ const HealthQuestDashboard = () => {
         </CardContent>
       </Card>
     </motion.div>
-  );return (
+  );
+  
+  return (
     <div className={`relative min-h-screen overflow-hidden ${theme === 'dark' ? 'dark' : ''}`}>
       <AnimatedBackground />
       <div className="relative z-10 p-8">
@@ -322,12 +326,12 @@ const HealthQuestDashboard = () => {
               <Progress value={questProgress} className="mb-4 h-2" />
               <p className="text-sm text-gray-600 dark:text-gray-300 mb-6">{t('questProgress', { progress: Math.round(questProgress) })}</p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <Input 
-                  name="name" 
-                  type="text" 
-                  placeholder={t('enterYourName')} 
-                  value={userData.name} 
-                  onChange={handleInputChange} 
+                <Input
+                  name="name"
+                  type="text"
+                  placeholder={t('enterYourName')}
+                  value={userData.name}
+                  onChange={handleInputChange}
                   className="col-span-1 md:col-span-2 dark:border-gray-600 dark:focus:border-white dark:focus:ring-white"
                 />
                 <Select onValueChange={(value) => handleSelectChange('gender', value)}>
@@ -339,9 +343,30 @@ const HealthQuestDashboard = () => {
                     <SelectItem value="female">{t('female')}</SelectItem>
                   </SelectContent>
                 </Select>
-                <Input name="age" type="number" placeholder={t('age')} onChange={handleInputChange} className="dark:border-gray-600 dark:focus:border-white dark:focus:ring-white" />
-                <Input name="weight" type="number" placeholder={t('weightKg')} onChange={handleInputChange} className="dark:border-gray-600 dark:focus:border-white dark:focus:ring-white" />
-                <Input name="height" type="number" placeholder={t('heightCm')} onChange={handleInputChange} className="dark:border-gray-600 dark:focus:border-white dark:focus:ring-white" />
+                <Input
+                  name="age"
+                  type="number"
+                  placeholder={t('age')}
+                  value={userData.age}
+                  onChange={handleInputChange}
+                  className="dark:border-gray-600 dark:focus:border-white dark:focus:ring-white"
+                />
+                <Input
+                  name="weight"
+                  type="number"
+                  placeholder={t('weightKg')}
+                  value={userData.weight}
+                  onChange={handleInputChange}
+                  className="dark:border-gray-600 dark:focus:border-white dark:focus:ring-white"
+                />
+                <Input
+                  name="height"
+                  type="number"
+                  placeholder={t('heightCm')}
+                  value={userData.height}
+                  onChange={handleInputChange}
+                  className="dark:border-gray-600 dark:focus:border-white dark:focus:ring-white"
+                />
                 <Select onValueChange={(value) => handleSelectChange('activityLevel', value)}>
                   <SelectTrigger className="dark:border-gray-600 dark:focus:border-white dark:focus:ring-white">
                     <SelectValue placeholder={t('activityLevel')} />
@@ -365,44 +390,14 @@ const HealthQuestDashboard = () => {
                   {errors[key]}
                 </motion.div>
               ))}
-              <Button 
-                onClick={calculateHealth} 
+              <Button
+                onClick={calculateHealth}
                 className="w-full text-lg py-6 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 transition-all duration-300 transform hover:scale-105"
               >
                 {t('startAdventure')}
               </Button>
 
-              <AnimatePresence>
-                {results && <ResultsDisplay />}
-              </AnimatePresence>
-
-              <Accordion type="single" collapsible className="mt-8">
-                <AccordionItem value="kidney-health">
-                  <AccordionTrigger className="text-xl">
-                    {t('learnAboutKidneyHealth')}
-                    <ChevronDown className="ml-2" />
-                  </AccordionTrigger>
-                  <AccordionContent>
-                    <motion.div
-                      initial={{ opacity: 0, y: -10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.3 }}
-                      className="space-y-4"
-                    >
-                      <p className="text-lg">{t('kidneyHealthDescription')}</p>
-                      <h4 className="font-semibold text-xl mt-4">{t('kidneyHealthTips')}</h4>
-                      <ul className="list-disc pl-5 space-y-2">
-                        <li>{t('stayHydrated')}</li>
-                        <li>{t('eatHealthy')}</li>
-                        <li>{t('exerciseRegularly')}</li>
-                        <li>{t('avoidSmoking')}</li>
-                        <li>{t('limitAlcohol')}</li>
-                        <li>{t('regularCheckups')}</li>
-                      </ul>
-                    </motion.div>
-                  </AccordionContent>
-                </AccordionItem>
-              </Accordion>
+              <AnimatePresence>{results && <ResultsDisplay />}</AnimatePresence>
             </motion.div>
           </CardContent>
         </Card>
@@ -431,11 +426,13 @@ const Confetti = () => {
     setParticles(newParticles);
 
     const interval = setInterval(() => {
-      setParticles(prevParticles =>
-        prevParticles.map(particle => ({
-          ...particle,
-          y: particle.y + particle.speed,
-        })).filter(particle => particle.y < window.innerHeight)
+      setParticles((prevParticles) =>
+        prevParticles
+          .map((particle) => ({
+            ...particle,
+            y: particle.y + particle.speed,
+          }))
+          .filter((particle) => particle.y < window.innerHeight)
       );
     }, 16);
 
@@ -574,16 +571,13 @@ const translations = {
 };
 
 // i18n configuration
-i18n
-  .use(initReactI18next)
-  .init({
-    resources: {
-      en: { translation: translations.en },
-      id: { translation: translations.id }
-    },
-    lng: "en",
-    fallbackLng: "en",
-    interpolation: { escapeValue: false }
-  });
+i18n.use(initReactI18next).init({
+  resources: {
+    en: { translation: translations.en },
+  },
+  lng: 'en',
+  fallbackLng: 'en',
+  interpolation: { escapeValue: false },
+});
 
-export default HealthQuestDashboard;      
+export default HealthQuestDashboard;   
