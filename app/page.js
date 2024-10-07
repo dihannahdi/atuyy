@@ -11,6 +11,7 @@ import { Progress } from '@/components/ui/progress';
 import { AlertCircle, Droplet, Heart, Activity, Sun, Moon, ChevronDown, Trophy } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import i18n from 'i18next';
+import { initReactI18next } from 'react-i18next';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 
 const AnimatedBackground = () => (
