@@ -661,10 +661,13 @@ const translations = {
 i18n.use(initReactI18next).init({
   resources: {
     en: { translation: translations.en },
+    id: { translation: translations.id },
   },
-  lng: 'en',
+  lng: language, // Use the language state variable
   fallbackLng: 'en',
   interpolation: { escapeValue: false },
 });
+
+
 
 export default HealthQuestDashboard; 
