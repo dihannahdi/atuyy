@@ -490,24 +490,6 @@ const Confetti = () => {
   );
 };
 
-const kidneyHealthQuizQuestions = [
-  {
-    question: t('kidneyQuizQuestion1'),
-    options: [t('kidneyQuizOption1A'), t('kidneyQuizOption1B'), t('kidneyQuizOption1C')],
-    correctAnswer: 1,
-  },
-  {
-    question: t('kidneyQuizQuestion2'),
-    options: [t('kidneyQuizOption2A'), t('kidneyQuizOption2B'), t('kidneyQuizOption2C')],
-    correctAnswer: 2,
-  },
-  {
-    question: t('kidneyQuizQuestion3'),
-    options: [t('kidneyQuizOption3A'), t('kidneyQuizOption3B'), t('kidneyQuizOption3C')],
-    correctAnswer: 0,
-  },
-];
-
 // Translations
 const translations = {
   en: {
