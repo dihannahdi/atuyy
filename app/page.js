@@ -38,6 +38,7 @@ const HealthQuestDashboard = () => {
   const [waterStrategy, setWaterStrategy] = useState('');
   const [questProgress, setQuestProgress] = useState(0);
   const [theme, setTheme] = useState('light');
+  const [showConfetti, setShowConfetti] = useState(false);
   const handleLanguageChange = (lang) => {
     setLanguage(lang);
     i18n.changeLanguage(lang);
@@ -147,6 +148,8 @@ const HealthQuestDashboard = () => {
       glassesNeeded: Math.ceil(waterNeed / 0.25),
       hourlyGlasses: Math.ceil((waterNeed / 0.25) / 8)
     }));
+    setShowConfetti(true);
+    setTimeout(() => setShowConfetti(false), 3000);
   };
 
   const getRandomHealthTip = () => {
@@ -172,9 +175,12 @@ const HealthQuestDashboard = () => {
       transition={{ duration: 0.5 }}
       className="space-y-6"
     >
-      <h3 className="text-3xl font-bold mb-6 text-center">{t('yourResults')}</h3>
+      <h3 className="text-3xl font-bold mb-6 text-center flex items-center justify-center">
+        <Trophy className="mr-3 text-yellow-400" />
+        {t('yourResults')}
+      </h3>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card className="p-6 bg-gradient-to-br from-blue-500 to-purple-600 text-white">
+        <Card className="p-6 bg-gradient-to-br from-blue-500 to-purple-600 text-white transform hover:scale-105 transition-transform duration-300">
           <CardHeader className="p-0">
             <h4 className="text-xl font-semibold">{t('bmi')}</h4>
           </CardHeader>
@@ -183,7 +189,7 @@ const HealthQuestDashboard = () => {
             <p className="text-lg mt-2">{results.bmiCategory}</p>
           </CardContent>
         </Card>
-        <Card className="p-6 bg-gradient-to-br from-green-500 to-teal-600 text-white">
+        <Card className="p-6 bg-gradient-to-br from-green-500 to-teal-600 text-white transform hover:scale-105 transition-transform duration-300">
           <CardHeader className="p-0">
             <h4 className="text-xl font-semibold">{t('dailyCalorieNeeds')}</h4>
           </CardHeader>
@@ -212,6 +218,29 @@ const HealthQuestDashboard = () => {
               <p className="text-2xl font-semibold mt-2">{results.carbNeed}g</p>
             </div>
           </div>
+          <div className="mt-6">
+            <ResponsiveContainer width="100%" height={200}>
+              <PieChart>
+                <Pie
+                  data={[
+                    { name: 'Protein', value: results.proteinNeed },
+                    { name: 'Fat', value: results.fatNeed },
+                    { name: 'Carbs', value: results.carbNeed },
+                  ]}
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={80}
+                  fill="#8884d8"
+                  dataKey="value"
+                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                >
+                  <Cell fill="#FF6384" />
+                  <Cell fill="#36A2EB" />
+                  <Cell fill="#FFCE56" />
+                </Pie>
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
         </CardContent>
       </Card>
       <Card className="mt-6 p-6 bg-blue-50 dark:bg-blue-900">
@@ -223,6 +252,11 @@ const HealthQuestDashboard = () => {
         <CardContent className="p-0 mt-4">
           <p className="text-4xl font-bold">{results.waterNeed} {t('liters')}</p>
           <p className="text-lg mt-4">{waterStrategy}</p>
+          <div className="mt-4 flex justify-center">
+            {[...Array(Math.ceil(results.waterNeed / 0.25))].map((_, i) => (
+              <Droplet key={i} className="text-blue-500 mx-1" size={24} />
+            ))}
+          </div>
         </CardContent>
       </Card>
       <Card className="mt-6 p-6 bg-green-50 dark:bg-green-900">
@@ -342,7 +376,7 @@ const HealthQuestDashboard = () => {
                   {errors[key]}
                 </motion.div>
               ))}
-              <Button onClick={calculateHealth} className="w-full text-lg py-6">
+              <Button onClick={calculateHealth} className="w-full text-lg py-6 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 transition-all duration-300">
                 {t('startAdventure')}
               </Button>
 
@@ -352,7 +386,10 @@ const HealthQuestDashboard = () => {
 
               <Accordion type="single" collapsible className="mt-8">
                 <AccordionItem value="kidney-health">
-                  <AccordionTrigger className="text-xl">{t('learnAboutKidneyHealth')}</AccordionTrigger>
+                  <AccordionTrigger className="text-xl">
+                    {t('learnAboutKidneyHealth')}
+                    <ChevronDown className="ml-2" />
+                  </AccordionTrigger>
                   <AccordionContent>
                     <motion.div
                       initial={{ opacity: 0, y: -10 }}
@@ -370,6 +407,27 @@ const HealthQuestDashboard = () => {
                         <li>{t('limitAlcohol')}</li>
                         <li>{t('regularCheckups')}</li>
                       </ul>
+                      <div className="mt-6">
+                        <h4 className="font-semibold text-xl mb-4">{t('kidneyHealthQuiz')}</h4>
+                        <div className="space-y-4">
+                          {kidneyHealthQuizQuestions.map((question, index) => (
+                            <div key={index} className="bg-white dark:bg-gray-700 p-4 rounded-lg shadow">
+                              <p className="font-medium mb-2">{question.question}</p>
+                              <div className="space-y-2">
+                                {question.options.map((option, optionIndex) => (
+                                  <button
+                                    key={optionIndex}
+                                    className="w-full text-left p-2 rounded bg-gray-100 dark:bg-gray-600 hover:bg-gray-200 dark:hover:bg-gray-500 transition-colors duration-200"
+                                    onClick={() => handleQuizAnswer(index, optionIndex)}
+                                  >
+                                    {option}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
                     </motion.div>
                   </AccordionContent>
                 </AccordionItem>
@@ -382,9 +440,73 @@ const HealthQuestDashboard = () => {
         <p>© 2023 Health Quest Dashboard. All rights reserved.</p>
         <p className="mt-2">Designed with ❤️ for your well-being</p>
       </footer>
+      {showConfetti && <Confetti />}
     </div>
   );
 };
+
+const Confetti = () => {
+  const [particles, setParticles] = useState([]);
+
+  useEffect(() => {
+    const colors = ['#f00', '#0f0', '#00f', '#ff0', '#f0f', '#0ff'];
+    const newParticles = Array.from({ length: 100 }, () => ({
+      x: Math.random() * window.innerWidth,
+      y: -20,
+      size: Math.random() * 8 + 2,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      speed: Math.random() * 3 + 1,
+    }));
+    setParticles(newParticles);
+
+    const interval = setInterval(() => {
+      setParticles(prevParticles =>
+        prevParticles.map(particle => ({
+          ...particle,
+          y: particle.y + particle.speed,
+        })).filter(particle => particle.y < window.innerHeight)
+      );
+    }, 16);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div className="fixed inset-0 pointer-events-none z-50">
+      {particles.map((particle, index) => (
+        <div
+          key={index}
+          className="absolute rounded-full"
+          style={{
+            left: `${particle.x}px`,
+            top: `${particle.y}px`,
+            width: `${particle.size}px`,
+            height: `${particle.size}px`,
+            backgroundColor: particle.color,
+          }}
+        />
+      ))}
+    </div>
+  );
+};
+
+const kidneyHealthQuizQuestions = [
+  {
+    question: t('kidneyQuizQuestion1'),
+    options: [t('kidneyQuizOption1A'), t('kidneyQuizOption1B'), t('kidneyQuizOption1C')],
+    correctAnswer: 1,
+  },
+  {
+    question: t('kidneyQuizQuestion2'),
+    options: [t('kidneyQuizOption2A'), t('kidneyQuizOption2B'), t('kidneyQuizOption2C')],
+    correctAnswer: 2,
+  },
+  {
+    question: t('kidneyQuizQuestion3'),
+    options: [t('kidneyQuizOption3A'), t('kidneyQuizOption3B'), t('kidneyQuizOption3C')],
+    correctAnswer: 0,
+  },
+];
 
 // Translations
 const translations = {
