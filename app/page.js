@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -11,7 +11,18 @@ import { AlertCircle, Droplet, Heart, Sun, Moon, ChevronDown, Trophy } from 'luc
 import { useTranslation } from 'react-i18next';
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+} from 'recharts';
 
 const weeklyActivityData = [
   { day: 'Monday', minutes: 30 },
@@ -110,7 +121,10 @@ const HealthQuestDashboard = () => {
   };
 
   const calculateHealth = () => {
-    if (Object.keys(errors).length > 0 || Object.values(userData).some((value) => value === '')) {
+    if (
+      Object.keys(errors).length > 0 ||
+      Object.values(userData).some((value) => value === '')
+    ) {
       setResults(null);
       setHealthTip(t('fillFieldsCorrectly'));
       console.log('Validation failed:', errors);
@@ -175,6 +189,32 @@ const HealthQuestDashboard = () => {
 
   const ResultsDisplay = () => {
     console.log('Rendering ResultsDisplay with results:', results);
+
+    const getPersonalizedAdvice = () => {
+      const bmiCategory = results.bmiCategory;
+      if (bmiCategory === t('underweight')) {
+        return t('adviceUnderweight');
+      } else if (bmiCategory === t('normal')) {
+        return t('adviceNormal');
+      } else if (bmiCategory === t('overweight')) {
+        return t('adviceOverweight');
+      } else if (bmiCategory === t('obese')) {
+        return t('adviceObese');
+      } else {
+        return '';
+      }
+    };
+
+    const getWaterStrategyAdvice = () => {
+      const glassesNeeded = Math.ceil((results.waterNeed * 1000) / 250);
+      const hourlyGlasses = Math.ceil(glassesNeeded / 16); // Assuming 16 awake hours
+      return t('waterStrategy', {
+        waterNeed: results.waterNeed,
+        glassesNeeded,
+        hourlyGlasses,
+      });
+    };
+
     return (
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -187,6 +227,7 @@ const HealthQuestDashboard = () => {
           <Trophy className="mr-3 text-yellow-400" />
           {t('yourResults')}
         </h3>
+        {/* Existing results display */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Card className="p-6 bg-gradient-to-br from-blue-500 to-purple-600 text-white transform hover:scale-105 transition-transform duration-300">
             <CardHeader className="p-0">
@@ -207,6 +248,7 @@ const HealthQuestDashboard = () => {
             </CardContent>
           </Card>
         </div>
+        {/* Nutrient needs */}
         <Card className="mt-6 p-6 bg-white dark:bg-gray-800">
           <CardHeader className="p-0">
             <h4 className="text-2xl font-semibold">{t('dailyNutrientNeeds')}</h4>
@@ -230,11 +272,15 @@ const HealthQuestDashboard = () => {
               <ResponsiveContainer width="100%" height={200}>
                 <PieChart>
                   <Pie
-                    data={results ? [
-                      { name: 'Protein', value: results.proteinNeed },
-                      { name: 'Fat', value: results.fatNeed },
-                      { name: 'Carbs', value: results.carbNeed },
-                    ] : []}
+                    data={
+                      results
+                        ? [
+                            { name: t('protein'), value: results.proteinNeed },
+                            { name: t('fat'), value: results.fatNeed },
+                            { name: t('carbohydrates'), value: results.carbNeed },
+                          ]
+                        : []
+                    }
                     cx="50%"
                     cy="50%"
                     outerRadius={80}
@@ -249,6 +295,43 @@ const HealthQuestDashboard = () => {
                 </PieChart>
               </ResponsiveContainer>
             </div>
+          </CardContent>
+        </Card>
+        {/* Personalized Advice */}
+        <Card className="mt-6 p-6 bg-white dark:bg-gray-800">
+          <CardHeader className="p-0">
+            <h4 className="text-2xl font-semibold">{t('personalizedAdvice')}</h4>
+          </CardHeader>
+          <CardContent className="p-0 mt-4 space-y-4">
+            <p className="text-lg">{getPersonalizedAdvice()}</p>
+            <p className="text-lg">{getWaterStrategyAdvice()}</p>
+          </CardContent>
+        </Card>
+        {/* Health Tip of the Day */}
+        <Card className="mt-6 p-6 bg-gradient-to-br from-yellow-400 to-orange-500 text-white">
+          <CardHeader className="p-0">
+            <h4 className="text-2xl font-semibold">{t('healthTip')}</h4>
+          </CardHeader>
+          <CardContent className="p-0 mt-4">
+            <p className="text-lg">{healthTip}</p>
+          </CardContent>
+        </Card>
+        {/* Learn About Kidney Health */}
+        <Card className="mt-6 p-6 bg-white dark:bg-gray-800">
+          <CardHeader className="p-0">
+            <h4 className="text-2xl font-semibold">{t('learnAboutKidneyHealth')}</h4>
+          </CardHeader>
+          <CardContent className="p-0 mt-4 space-y-4">
+            <p className="text-lg">{t('kidneyHealthDescription')}</p>
+            <h5 className="text-xl font-semibold mt-4">{t('kidneyHealthTips')}</h5>
+            <ul className="list-disc list-inside space-y-2">
+              <li>{t('stayHydrated')}</li>
+              <li>{t('eatHealthy')}</li>
+              <li>{t('exerciseRegularly')}</li>
+              <li>{t('avoidSmoking')}</li>
+              <li>{t('limitAlcohol')}</li>
+              <li>{t('regularCheckups')}</li>
+            </ul>
           </CardContent>
         </Card>
       </motion.div>
@@ -274,7 +357,11 @@ const HealthQuestDashboard = () => {
                   </SelectContent>
                 </Select>
                 <Button onClick={toggleTheme} variant="outline" size="icon">
-                  {theme === 'light' ? <Moon className="h-[1.2rem] w-[1.2rem]" /> : <Sun className="h-[1.2rem] w-[1.2rem]" />}
+                  {theme === 'light' ? (
+                    <Moon className="h-[1.2rem] w-[1.2rem]" />
+                  ) : (
+                    <Sun className="h-[1.2rem] w-[1.2rem]" />
+                  )}
                 </Button>
               </div>
             </div>
@@ -288,7 +375,9 @@ const HealthQuestDashboard = () => {
             >
               <h2 className="text-3xl font-semibold mb-6">{t('startYourQuest')}</h2>
               <Progress value={questProgress} className="mb-4 h-2" />
-              <p className="text-sm text-gray-600 dark:text-gray-300 mb-6">{t('questProgress', { progress: Math.round(questProgress) })}</p>
+              <p className="text-sm text-gray-600 dark:text-gray-300 mb-6">
+                {t('questProgress', { progress: Math.round(questProgress) })}
+              </p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <Input
                   name="name"
@@ -454,7 +543,8 @@ const translations = {
     liters: 'liters',
     healthTip: 'Health Tip of the Day',
     learnAboutKidneyHealth: 'Learn About Kidney Health',
-    kidneyHealthDescription: 'Your kidneys play a crucial role in maintaining overall health by filtering blood, balancing fluids, and supporting various bodily functions.',
+    kidneyHealthDescription:
+      'Your kidneys play a crucial role in maintaining overall health by filtering blood, balancing fluids, and supporting various bodily functions.',
     kidneyHealthTips: 'Kidney Health Tips',
     stayHydrated: 'Stay well-hydrated by drinking plenty of water',
     eatHealthy: 'Maintain a balanced diet rich in fruits, vegetables, and whole grains',
@@ -462,21 +552,37 @@ const translations = {
     avoidSmoking: 'Avoid smoking and limit alcohol consumption',
     limitAlcohol: 'Consume alcohol in moderation',
     regularCheckups: 'Schedule regular health check-ups',
-    fillFieldsCorrectly: 'Please fill in all fields correctly to calculate your health metrics.',
+    fillFieldsCorrectly:
+      'Please fill in all fields correctly to calculate your health metrics.',
     underweight: 'Underweight',
     normal: 'Normal weight',
     overweight: 'Overweight',
     obese: 'Obese',
-    waterStrategy: 'For proper hydration, aim to drink {{waterNeed}} liters of water daily. This is approximately {{glassesNeeded}} glasses. Try to drink {{hourlyGlasses}} glass(es) every hour while you\'re awake.',
-    healthTip1: 'Regular laughter can boost your mood and immune system.',
-    healthTip2: 'Aim for 7-9 hours of sleep each night for optimal health.',
-    healthTip3: 'Strong social connections can positively impact your overall well-being.',
-    healthTip4: 'Practice mindfulness or meditation to reduce stress and improve mental health.',
-    healthTip5: 'Eating a variety of colorful fruits and vegetables provides essential nutrients and antioxidants.',
+    waterStrategy:
+      'For proper hydration, aim to drink {{waterNeed}} liters of water daily. This is approximately {{glassesNeeded}} glasses. Try to drink {{hourlyGlasses}} glass(es) every hour while you\'re awake.',
+    healthTip1:
+      'Regular laughter can boost your mood and immune system.',
+    healthTip2:
+      'Aim for 7-9 hours of sleep each night for optimal health.',
+    healthTip3:
+      'Strong social connections can positively impact your overall well-being.',
+    healthTip4:
+      'Practice mindfulness or meditation to reduce stress and improve mental health.',
+    healthTip5:
+      'Eating a variety of colorful fruits and vegetables provides essential nutrients and antioxidants.',
     nameRequired: 'Please enter your name.',
     ageRange: 'Please enter an age between 1 and 120 years.',
     weightRange: 'Please enter a weight between 1 and 500 kg.',
-    heightRange: 'Please enter a height between 1 and 300 cm.'
+    heightRange: 'Please enter a height between 1 and 300 cm.',
+    personalizedAdvice: 'Personalized Advice',
+    adviceUnderweight:
+      'Your BMI indicates that you are underweight. Consider consulting a healthcare provider to determine possible causes and solutions.',
+    adviceNormal:
+      'Great job! Your BMI is within the normal range. Maintain your healthy lifestyle.',
+    adviceOverweight:
+      'Your BMI indicates that you are overweight. Consider adopting a balanced diet and regular exercise to improve your health.',
+    adviceObese:
+      'Your BMI indicates obesity. It is recommended to consult a healthcare provider for personalized guidance.',
   },
   id: {
     healthQuestDashboard: 'Dashboard Kesehatan dan Kesadaran Ginjal',
@@ -508,7 +614,8 @@ const translations = {
     liters: 'liter',
     healthTip: 'Tips Kesehatan Hari Ini',
     learnAboutKidneyHealth: 'Pelajari Tentang Kesehatan Ginjal',
-    kidneyHealthDescription: 'Ginjal Anda memainkan peran penting dalam menjaga kesehatan secara keseluruhan dengan menyaring darah, menyeimbangkan cairan, dan mendukung berbagai fungsi tubuh.',
+    kidneyHealthDescription:
+      'Ginjal Anda memainkan peran penting dalam menjaga kesehatan secara keseluruhan dengan menyaring darah, menyeimbangkan cairan, dan mendukung berbagai fungsi tubuh.',
     kidneyHealthTips: 'Tips Kesehatan Ginjal',
     stayHydrated: 'Jaga hidrasi dengan minum banyak air',
     eatHealthy: 'Pertahankan pola makan seimbang kaya buah, sayuran, dan biji-bijian utuh',
@@ -516,22 +623,38 @@ const translations = {
     avoidSmoking: 'Hindari merokok dan batasi konsumsi alkohol',
     limitAlcohol: 'Konsumsi alkohol secukupnya',
     regularCheckups: 'Lakukan pemeriksaan kesehatan rutin',
-    fillFieldsCorrectly: 'Harap isi semua kolom dengan benar untuk menghitung metrik kesehatan Anda.',
+    fillFieldsCorrectly:
+      'Harap isi semua kolom dengan benar untuk menghitung metrik kesehatan Anda.',
     underweight: 'Berat badan kurang',
     normal: 'Berat badan normal',
     overweight: 'Kelebihan berat badan',
     obese: 'Obesitas',
-    waterStrategy: 'Untuk hidrasi yang baik, targetkan untuk minum {{waterNeed}} liter air setiap hari. Ini sekitar {{glassesNeeded}} gelas. Cobalah minum {{hourlyGlasses}} gelas setiap jam selama Anda terjaga.',
-    healthTip1: 'Tertawa secara teratur dapat meningkatkan suasana hati dan sistem kekebalan tubuh Anda.',
-    healthTip2: 'Usahakan tidur 7-9 jam setiap malam untuk kesehatan optimal.',
-    healthTip3: 'Hubungan sosial yang kuat dapat berdampak positif pada kesejahteraan Anda secara keseluruhan.',
-    healthTip4: 'Praktikkan mindfulness atau meditasi untuk mengurangi stres dan meningkatkan kesehatan mental.',
-    healthTip5: 'Mengonsumsi berbagai buah dan sayuran berwarna-warni memberikan nutrisi dan antioksidan penting.',
+    waterStrategy:
+      'Untuk hidrasi yang baik, targetkan untuk minum {{waterNeed}} liter air setiap hari. Ini sekitar {{glassesNeeded}} gelas. Cobalah minum {{hourlyGlasses}} gelas setiap jam selama Anda terjaga.',
+    healthTip1:
+      'Tertawa secara teratur dapat meningkatkan suasana hati dan sistem kekebalan tubuh Anda.',
+    healthTip2:
+      'Usahakan tidur 7-9 jam setiap malam untuk kesehatan optimal.',
+    healthTip3:
+      'Hubungan sosial yang kuat dapat berdampak positif pada kesejahteraan Anda secara keseluruhan.',
+    healthTip4:
+      'Praktikkan mindfulness atau meditasi untuk mengurangi stres dan meningkatkan kesehatan mental.',
+    healthTip5:
+      'Mengonsumsi berbagai buah dan sayuran berwarna-warni memberikan nutrisi dan antioksidan penting.',
     nameRequired: 'Mohon masukkan nama Anda.',
     ageRange: 'Mohon masukkan usia antara 1 dan 120 tahun.',
     weightRange: 'Mohon masukkan berat badan antara 1 dan 500 kg.',
-    heightRange: 'Mohon masukkan tinggi badan antara 1 dan 300 cm.'
-  }
+    heightRange: 'Mohon masukkan tinggi badan antara 1 dan 300 cm.',
+    personalizedAdvice: 'Saran yang Dipersonalisasi',
+    adviceUnderweight:
+      'IMT Anda menunjukkan bahwa Anda kekurangan berat badan. Pertimbangkan untuk berkonsultasi dengan penyedia layanan kesehatan untuk menentukan kemungkinan penyebab dan solusi.',
+    adviceNormal:
+      'Kerja bagus! IMT Anda berada dalam kisaran normal. Pertahankan gaya hidup sehat Anda.',
+    adviceOverweight:
+      'IMT Anda menunjukkan bahwa Anda kelebihan berat badan. Pertimbangkan untuk mengadopsi pola makan seimbang dan olahraga teratur untuk meningkatkan kesehatan Anda.',
+    adviceObese:
+      'IMT Anda menunjukkan obesitas. Disarankan untuk berkonsultasi dengan penyedia layanan kesehatan untuk panduan yang dipersonalisasi.',
+  },
 };
 
 // i18n configuration
