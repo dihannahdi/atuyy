@@ -1,4 +1,5 @@
 "use client";
+
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
@@ -112,6 +113,7 @@ const HealthQuestDashboard = () => {
     if (Object.keys(errors).length > 0 || Object.values(userData).some((value) => value === '')) {
       setResults(null);
       setHealthTip(t('fillFieldsCorrectly'));
+      console.log('Validation failed:', errors);
       return;
     }
 
@@ -149,6 +151,7 @@ const HealthQuestDashboard = () => {
       waterNeed: waterNeed.toFixed(1),
     };
 
+    console.log('Calculation results:', newResults);
     setResults(newResults);
     setHealthTip(getRandomHealthTip());
     setShowConfetti(true);
@@ -170,127 +173,88 @@ const HealthQuestDashboard = () => {
     setTheme((prevTheme) => (prevTheme === 'light' ? 'dark' : 'light'));
   };
 
-  const ResultsDisplay = () => (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
-      transition={{ duration: 0.5 }}
-      className="space-y-6"
-    >
-      <h3 className="text-3xl font-bold mb-6 text-center flex items-center justify-center">
-        <Trophy className="mr-3 text-yellow-400" />
-        {t('yourResults')}
-      </h3>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card className="p-6 bg-gradient-to-br from-blue-500 to-purple-600 text-white transform hover:scale-105 transition-transform duration-300">
+  const ResultsDisplay = () => {
+    console.log('Rendering ResultsDisplay with results:', results);
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -20 }}
+        transition={{ duration: 0.5 }}
+        className="space-y-6"
+      >
+        <h3 className="text-3xl font-bold mb-6 text-center flex items-center justify-center">
+          <Trophy className="mr-3 text-yellow-400" />
+          {t('yourResults')}
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <Card className="p-6 bg-gradient-to-br from-blue-500 to-purple-600 text-white transform hover:scale-105 transition-transform duration-300">
+            <CardHeader className="p-0">
+              <h4 className="text-xl font-semibold">{t('bmi')}</h4>
+            </CardHeader>
+            <CardContent className="p-0 mt-4">
+              <p className="text-4xl font-bold">{results?.bmi}</p>
+              <p className="text-lg mt-2">{results?.bmiCategory}</p>
+            </CardContent>
+          </Card>
+          <Card className="p-6 bg-gradient-to-br from-green-500 to-teal-600 text-white transform hover:scale-105 transition-transform duration-300">
+            <CardHeader className="p-0">
+              <h4 className="text-xl font-semibold">{t('dailyCalorieNeeds')}</h4>
+            </CardHeader>
+            <CardContent className="p-0 mt-4">
+              <p className="text-4xl font-bold">{results?.dailyCalories}</p>
+              <p className="text-lg mt-2">{t('calories')}</p>
+            </CardContent>
+          </Card>
+        </div>
+        <Card className="mt-6 p-6 bg-white dark:bg-gray-800">
           <CardHeader className="p-0">
-            <h4 className="text-xl font-semibold">{t('bmi')}</h4>
+            <h4 className="text-2xl font-semibold">{t('dailyNutrientNeeds')}</h4>
           </CardHeader>
           <CardContent className="p-0 mt-4">
-            <p className="text-4xl font-bold">{results.bmi}</p>
-            <p className="text-lg mt-2">{results.bmiCategory}</p>
+            <div className="grid grid-cols-3 gap-4">
+              <div className="text-center">
+                <p className="text-lg text-gray-600 dark:text-gray-300">{t('protein')}</p>
+                <p className="text-2xl font-semibold mt-2">{results?.proteinNeed}g</p>
+              </div>
+              <div className="text-center">
+                <p className="text-lg text-gray-600 dark:text-gray-300">{t('fat')}</p>
+                <p className="text-2xl font-semibold mt-2">{results?.fatNeed}g</p>
+              </div>
+              <div className="text-center">
+                <p className="text-lg text-gray-600 dark:text-gray-300">{t('carbohydrates')}</p>
+                <p className="text-2xl font-semibold mt-2">{results?.carbNeed}g</p>
+              </div>
+            </div>
+            <div className="mt-6">
+              <ResponsiveContainer width="100%" height={200}>
+                <PieChart>
+                  <Pie
+                    data={results ? [
+                      { name: 'Protein', value: results.proteinNeed },
+                      { name: 'Fat', value: results.fatNeed },
+                      { name: 'Carbs', value: results.carbNeed },
+                    ] : []}
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={80}
+                    fill="#8884d8"
+                    dataKey="value"
+                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                  >
+                    <Cell fill="#FF6384" />
+                    <Cell fill="#36A2EB" />
+                    <Cell fill="#FFCE56" />
+                  </Pie>
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
           </CardContent>
         </Card>
-        <Card className="p-6 bg-gradient-to-br from-green-500 to-teal-600 text-white transform hover:scale-105 transition-transform duration-300">
-          <CardHeader className="p-0">
-            <h4 className="text-xl font-semibold">{t('dailyCalorieNeeds')}</h4>
-          </CardHeader>
-          <CardContent className="p-0 mt-4">
-            <p className="text-4xl font-bold">{results.dailyCalories}</p>
-            <p className="text-lg mt-2">{t('calories')}</p>
-          </CardContent>
-        </Card>
-      </div>
-      <Card className="mt-6 p-6 bg-white dark:bg-gray-800">
-        <CardHeader className="p-0">
-          <h4 className="text-2xl font-semibold">{t('dailyNutrientNeeds')}</h4>
-        </CardHeader>
-        <CardContent className="p-0 mt-4">
-          <div className="grid grid-cols-3 gap-4">
-            <div className="text-center">
-              <p className="text-lg text-gray-600 dark:text-gray-300">{t('protein')}</p>
-              <p className="text-2xl font-semibold mt-2">{results.proteinNeed}g</p>
-            </div>
-            <div className="text-center">
-              <p className="text-lg text-gray-600 dark:text-gray-300">{t('fat')}</p>
-              <p className="text-2xl font-semibold mt-2">{results.fatNeed}g</p>
-            </div>
-            <div className="text-center">
-              <p className="text-lg text-gray-600 dark:text-gray-300">{t('carbohydrates')}</p>
-              <p className="text-2xl font-semibold mt-2">{results.carbNeed}g</p>
-            </div>
-          </div>
-          <div className="mt-6">
-            <ResponsiveContainer width="100%" height={200}>
-              <PieChart>
-                <Pie
-                  data={[
-                    { name: 'Protein', value: results.proteinNeed },
-                    { name: 'Fat', value: results.fatNeed },
-                    { name: 'Carbs', value: results.carbNeed },
-                  ]}
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="value"
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                >
-                  <Cell fill="#FF6384" />
-                  <Cell fill="#36A2EB" />
-                  <Cell fill="#FFCE56" />
-                </Pie>
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-        </CardContent>
-      </Card>
-      <Card className="mt-6 p-6 bg-blue-50 dark:bg-blue-900">
-        <CardHeader className="p-0">
-          <h4 className="text-2xl font-semibold flex items-center">
-            <Droplet className="mr-3" /> {t('waterNeeds')}
-          </h4>
-        </CardHeader>
-        <CardContent className="p-0 mt-4">
-          <p className="text-4xl font-bold">{results.waterNeed} {t('liters')}</p>
-          <p className="text-lg mt-4">{waterStrategy}</p>
-          <div className="mt-4 flex justify-center">
-            {[...Array(Math.ceil(results.waterNeed / 0.25))].map((_, i) => (
-              <Droplet key={i} className="text-blue-500 mx-1" size={24} />
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-      <Card className="mt-6 p-6 bg-green-50 dark:bg-green-900">
-        <CardHeader className="p-0">
-          <h4 className="text-2xl font-semibold flex items-center">
-            <Heart className="mr-3" /> {t('healthTip')}
-          </h4>
-        </CardHeader>
-        <CardContent className="p-0 mt-4">
-          <p className="text-lg">{healthTip}</p>
-        </CardContent>
-      </Card>
-      <Card className="mt-6 p-6">
-        <CardHeader className="p-0">
-          <h4 className="text-2xl font-semibold">{t('weeklyActivityGoal')}</h4>
-        </CardHeader>
-        <CardContent className="p-0 mt-4">
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={weeklyActivityData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="day" />
-              <YAxis />
-              <Tooltip />
-              <Line type="monotone" dataKey="minutes" stroke="#8884d8" activeDot={{ r: 8 }} />
-            </LineChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
-    </motion.div>
-  );
-  
+      </motion.div>
+    );
+  };
+
   return (
     <div className={`relative min-h-screen overflow-hidden ${theme === 'dark' ? 'dark' : ''}`}>
       <AnimatedBackground />
@@ -580,4 +544,4 @@ i18n.use(initReactI18next).init({
   interpolation: { escapeValue: false },
 });
 
-export default HealthQuestDashboard;   
+export default HealthQuestDashboard; 
