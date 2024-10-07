@@ -8,11 +8,12 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion';
 import { Progress } from '@/components/ui/progress';
-import { AlertCircle, Droplet, Heart, Activity, Sun, Moon } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
+import { AlertCircle, Droplet, Heart, Activity, Sun, Moon, ChevronDown } from 'lucide-react';import { useTranslation } from 'react-i18next';
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+
+
 
 const AnimatedBackground = () => (
   <div className="fixed inset-0 z-0">
