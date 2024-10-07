@@ -8,12 +8,9 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion';
 import { Progress } from '@/components/ui/progress';
-import { AlertCircle, Droplet, Heart, Activity, Sun, Moon, ChevronDown } from 'lucide-react';import { useTranslation } from 'react-i18next';
-import i18n from 'i18next';
-import { initReactI18next } from 'react-i18next';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-
-
+import { AlertCircle, Droplet, Heart, Activity, Sun, Moon, ChevronDown, Trophy } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 
 const AnimatedBackground = () => (
   <div className="fixed inset-0 z-0">
@@ -40,6 +37,7 @@ const HealthQuestDashboard = () => {
   const [questProgress, setQuestProgress] = useState(0);
   const [theme, setTheme] = useState('light');
   const [showConfetti, setShowConfetti] = useState(false);
+
   const handleLanguageChange = (lang) => {
     setLanguage(lang);
     i18n.changeLanguage(lang);
@@ -287,19 +285,7 @@ const HealthQuestDashboard = () => {
         </CardContent>
       </Card>
     </motion.div>
-  );
-
-  const weeklyActivityData = [
-    { day: 'Mon', minutes: 30 },
-    { day: 'Tue', minutes: 45 },
-    { day: 'Wed', minutes: 60 },
-    { day: 'Thu', minutes: 30 },
-    { day: 'Fri', minutes: 45 },
-    { day: 'Sat', minutes: 90 },
-    { day: 'Sun', minutes: 60 },
-  ];
-
-  return (
+  );return (
     <div className={`relative min-h-screen overflow-hidden ${theme === 'dark' ? 'dark' : ''}`}>
       <AnimatedBackground />
       <div className="relative z-10 p-8">
@@ -340,10 +326,10 @@ const HealthQuestDashboard = () => {
                   placeholder={t('enterYourName')} 
                   value={userData.name} 
                   onChange={handleInputChange} 
-                  className="col-span-1 md:col-span-2"
+                  className="col-span-1 md:col-span-2 dark:border-gray-600 dark:focus:border-white dark:focus:ring-white"
                 />
                 <Select onValueChange={(value) => handleSelectChange('gender', value)}>
-                  <SelectTrigger>
+                  <SelectTrigger className="dark:border-gray-600 dark:focus:border-white dark:focus:ring-white">
                     <SelectValue placeholder={t('selectGender')} />
                   </SelectTrigger>
                   <SelectContent>
@@ -351,11 +337,11 @@ const HealthQuestDashboard = () => {
                     <SelectItem value="female">{t('female')}</SelectItem>
                   </SelectContent>
                 </Select>
-                <Input name="age" type="number" placeholder={t('age')} onChange={handleInputChange} />
-                <Input name="weight" type="number" placeholder={t('weightKg')} onChange={handleInputChange} />
-                <Input name="height" type="number" placeholder={t('heightCm')} onChange={handleInputChange} />
+                <Input name="age" type="number" placeholder={t('age')} onChange={handleInputChange} className="dark:border-gray-600 dark:focus:border-white dark:focus:ring-white" />
+                <Input name="weight" type="number" placeholder={t('weightKg')} onChange={handleInputChange} className="dark:border-gray-600 dark:focus:border-white dark:focus:ring-white" />
+                <Input name="height" type="number" placeholder={t('heightCm')} onChange={handleInputChange} className="dark:border-gray-600 dark:focus:border-white dark:focus:ring-white" />
                 <Select onValueChange={(value) => handleSelectChange('activityLevel', value)}>
-                  <SelectTrigger>
+                  <SelectTrigger className="dark:border-gray-600 dark:focus:border-white dark:focus:ring-white">
                     <SelectValue placeholder={t('activityLevel')} />
                   </SelectTrigger>
                   <SelectContent>
@@ -377,7 +363,10 @@ const HealthQuestDashboard = () => {
                   {errors[key]}
                 </motion.div>
               ))}
-              <Button onClick={calculateHealth} className="w-full text-lg py-6 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 transition-all duration-300">
+              <Button 
+                onClick={calculateHealth} 
+                className="w-full text-lg py-6 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 transition-all duration-300 transform hover:scale-105"
+              >
                 {t('startAdventure')}
               </Button>
 
@@ -417,7 +406,7 @@ const HealthQuestDashboard = () => {
         </Card>
       </div>
       <footer className="bg-gray-800 text-white text-center py-6 mt-12">
-        <p>© 2023 Health Quest Dashboard. All rights reserved.</p>
+        <p>© 2024 Atania Health Quest Dashboard. All rights reserved.</p>
         <p className="mt-2">Designed with ❤️ for your well-being</p>
       </footer>
       {showConfetti && <Confetti />}
