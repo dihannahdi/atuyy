@@ -408,27 +408,6 @@ const HealthQuestDashboard = () => {
                         <li>{t('limitAlcohol')}</li>
                         <li>{t('regularCheckups')}</li>
                       </ul>
-                      <div className="mt-6">
-                        <h4 className="font-semibold text-xl mb-4">{t('kidneyHealthQuiz')}</h4>
-                        <div className="space-y-4">
-                          {kidneyHealthQuizQuestions.map((question, index) => (
-                            <div key={index} className="bg-white dark:bg-gray-700 p-4 rounded-lg shadow">
-                              <p className="font-medium mb-2">{question.question}</p>
-                              <div className="space-y-2">
-                                {question.options.map((option, optionIndex) => (
-                                  <button
-                                    key={optionIndex}
-                                    className="w-full text-left p-2 rounded bg-gray-100 dark:bg-gray-600 hover:bg-gray-200 dark:hover:bg-gray-500 transition-colors duration-200"
-                                    onClick={() => handleQuizAnswer(index, optionIndex)}
-                                  >
-                                    {option}
-                                  </button>
-                                ))}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
                     </motion.div>
                   </AccordionContent>
                 </AccordionItem>
